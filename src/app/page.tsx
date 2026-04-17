@@ -1,65 +1,284 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import EventCard from "@/components/EventCard";
+import { useEvents } from "@/context/EventsContext";
 
 export default function Home() {
+  const { events, clicks, categories, recordClick } = useEvents();
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("deadline");
+  const [rankIndex, setRankIndex] = useState(0);
+
+  const isDiscovery = !activeCategory;
+
+  const popularBrands = [
+    ...new Map(
+      events
+        .map((e) => ({ brand: e.brand, count: clicks[e.id] ?? 0 }))
+        .sort((a, b) => b.count - a.count)
+        .map((x) => [x.brand, x])
+    ).values(),
+  ]
+    .slice(0, 8)
+    .map((x) => x.brand);
+
+  useEffect(() => {
+    if (popularBrands.length <= 1) return;
+    const timer = setInterval(() => {
+      setRankIndex((i) => (i + 1) % popularBrands.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [popularBrands.length]);
+
+  const goHome = () => {
+    setActiveCategory(null);
+    setSearchQuery("");
+  };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const filtered = [...events]
+    .filter((e) => {
+      // 마감일이 있고 오늘보다 이전이면 숨김 (데이터는 보존)
+      if (e.deadline && new Date(e.deadline) < today) return false;
+      if (activeCategory && e.category !== activeCategory) return false;
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return e.brand.toLowerCase().includes(q) || e.title.toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      if (sortOrder === "latest") return b.id - a.id;
+      if (sortOrder === "popular") return (clicks[b.id] ?? 0) - (clicks[a.id] ?? 0);
+      if (!a.deadline && !b.deadline) return 0;
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+    });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen bg-bg-main">
+      {/* 헤더 */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+          {/* 뒤로가기 버튼 (목록 화면에서만) */}
+          {(!isDiscovery || searchQuery) && (
+            <button
+              onClick={goHome}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-text-secondary flex-shrink-0"
+              aria-label="뒤로가기"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+          )}
+
+          {/* 로고 + 이름 */}
+          <button onClick={goHome} className="flex items-center gap-2.5">
+            <Image src="/logo.png" alt="모응 로고" width={36} height={36} className="rounded-xl" />
+            <h1 className="text-xl font-extrabold text-primary-400 leading-tight tracking-tight">모응</h1>
+          </button>
+
+          {/* 우측 버튼 */}
+          <div className="ml-auto flex items-center gap-2">
+            <button className="text-sm font-semibold px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-700 transition-colors">
+              로그인
+            </button>
+            <button className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-400 text-white hover:bg-primary-500 transition-colors">
+              앱 다운로드
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {isDiscovery ? (
+        /* ── 디스커버리(랜딩) 화면 ── */
+        <div className="max-w-3xl mx-auto px-4 pt-8 pb-16">
+          {/* 검색 */}
+          <div className="mb-6">
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">🔍</span>
+              <input
+                type="text"
+                placeholder="브랜드나 이벤트 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3.5 text-sm bg-white border border-primary-100 rounded-2xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted transition-colors shadow-sm"
+              />
+            </div>
+          </div>
+
+          {searchQuery ? (
+            /* 검색 결과 */
+            <div>
+              <p className="text-xs text-text-muted mb-3">
+                &ldquo;{searchQuery}&rdquo; 검색 결과 {filtered.length}개
+              </p>
+              {filtered.length === 0 ? (
+                <div className="text-center py-16 text-text-muted text-sm">검색 결과가 없습니다.</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {filtered.map((event) => (
+                    <EventCard key={event.id} event={event} onClickApply={() => recordClick(event.id)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* 인기 순위 롤링 + hover 전체 목록 */}
+              {popularBrands.length > 0 && (
+                <div className="relative mb-8 group">
+                  {/* 롤링 바 */}
+                  <button
+                    onClick={() => setSearchQuery(popularBrands[rankIndex])}
+                    className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 group-hover:border-primary-200 shadow-sm px-4 py-3 w-full transition-colors overflow-hidden"
+                  >
+                    <span className="text-xs font-bold text-primary-400 flex-shrink-0">인기 순위</span>
+                    <span className="w-px h-4 bg-gray-200 flex-shrink-0" />
+                    <span className={`text-xs font-extrabold flex-shrink-0 ${
+                      rankIndex === 0 ? "text-yellow-400" :
+                      rankIndex === 1 ? "text-sky-400" :
+                      rankIndex === 2 ? "text-orange-400" :
+                      "text-gray-300"
+                    }`}>
+                      {rankIndex + 1}위
+                    </span>
+                    <span key={rankIndex} className="text-sm font-semibold text-text-primary flex-1 text-left animate-slide-up">
+                      {popularBrands[rankIndex]}
+                    </span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted flex-shrink-0 transition-transform duration-150 group-hover:rotate-180">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+
+                  {/* hover 시 전체 목록 */}
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border border-primary-100 shadow-lg overflow-hidden z-20 invisible opacity-0 group-hover:visible group-hover:opacity-100 -translate-y-1 group-hover:translate-y-0 transition-all duration-150">
+                    {popularBrands.map((brand, i) => (
+                      <button
+                        key={brand}
+                        onClick={() => setSearchQuery(brand)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 text-left ${i === rankIndex ? "bg-primary-50" : ""}`}
+                      >
+                        <span className={`text-xs font-extrabold w-6 flex-shrink-0 ${
+                          i === 0 ? "text-yellow-400" :
+                          i === 1 ? "text-sky-400" :
+                          i === 2 ? "text-orange-400" :
+                          "text-gray-300"
+                        }`}>
+                          {i + 1}위
+                        </span>
+                        <span className="text-sm font-medium text-text-primary flex-1">{brand}</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted flex-shrink-0">
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 카테고리 카드 */}
+              <h2 className="text-sm font-bold text-text-primary mb-3">카테고리</h2>
+              <div className="grid grid-cols-3 gap-3">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className="bg-white rounded-2xl p-5 flex flex-col gap-2 border border-gray-100 hover:border-primary-300 hover:shadow-md transition-all duration-200 text-left shadow-sm"
+                  >
+                    <div className="text-sm font-bold text-text-primary">{cat.label}</div>
+                    <div className="text-[11px] text-text-muted">{cat.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        /* ── 이벤트 목록 화면 ── */
+        <>
+          {/* 카테고리 탭 */}
+          <div className="bg-white border-b border-gray-100">
+            <div className="max-w-3xl mx-auto px-4">
+              <div className="flex gap-2 py-3 overflow-x-auto scrollbar-hide">
+                <button
+                  onClick={() => setActiveCategory(null)}
+                  className={`flex-shrink-0 text-sm px-4 py-1.5 rounded-full font-medium transition-colors duration-150 ${
+                    !activeCategory
+                      ? "bg-primary-400 text-white"
+                      : "bg-white text-text-secondary border border-gray-200 hover:border-primary-200"
+                  }`}
+                >
+                  전체
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`flex-shrink-0 text-sm px-4 py-1.5 rounded-full font-medium transition-colors duration-150 ${
+                      activeCategory === cat.id
+                        ? "bg-primary-400 text-white"
+                        : "bg-white text-text-secondary border border-gray-200 hover:border-primary-200"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 검색 & 정렬 */}
+          <div className="max-w-3xl mx-auto px-4 pt-4 pb-2 flex gap-3 items-center">
+            <div className="flex-1 relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none">🔍</span>
+              <input
+                type="text"
+                placeholder="브랜드나 차종 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-primary-100 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted transition-colors"
+              />
+            </div>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="text-sm text-text-secondary bg-white border border-gray-200 rounded-xl px-3 py-2 focus:outline-none cursor-pointer"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+              <option value="deadline">마감 임박순</option>
+              <option value="latest">최신순</option>
+              <option value="popular">인기순</option>
+            </select>
+          </div>
+
+          {/* 이벤트 그리드 */}
+          <main className="max-w-3xl mx-auto px-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {filtered.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onClickApply={() => recordClick(event.id)}
+                />
+              ))}
+            </div>
+            {filtered.length === 0 && (
+              <div className="text-center py-16 text-text-muted text-sm">
+                검색 결과가 없습니다.
+              </div>
+            )}
+          </main>
+        </>
+      )}
+
+      <footer className="text-center py-8 text-xs text-text-muted">
+        © 2026 모응. 내 다음 차를 먼저 만나다.
+      </footer>
     </div>
   );
 }
