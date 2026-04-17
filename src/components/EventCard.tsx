@@ -55,40 +55,40 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
   return (
     <div className="bg-white rounded-2xl shadow-md border border-primary-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
-      <div className="p-4 flex flex-col flex-1">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-100 text-primary-600">
+      <div className="p-3 flex flex-col flex-1">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-600">
             {event.brand}
           </span>
-          <span className={`text-xs px-2.5 py-1 rounded-full ${dDayStyles[level]}`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${dDayStyles[level]}`}>
             {label}
           </span>
         </div>
 
-        <h2 className="text-[16px] font-bold text-text-primary mb-1 leading-snug line-clamp-2">
+        <h2 className="text-sm font-bold text-text-primary mb-0.5 leading-snug line-clamp-1">
           {event.title}
         </h2>
-        <p className="text-sm text-text-secondary leading-relaxed line-clamp-2 flex-1">
+        <p className="text-xs text-text-secondary leading-relaxed line-clamp-2 flex-1">
           {event.description}
         </p>
 
         {event.participationMethod && (
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="text-[11px] text-text-muted">참여방법</span>
-            <span className="text-[11px] font-medium text-text-secondary bg-gray-50 px-2 py-0.5 rounded-full">
+          <div className="mt-1.5 flex items-center gap-1">
+            <span className="text-[10px] text-text-muted">참여방법</span>
+            <span className="text-[10px] font-medium text-text-secondary bg-gray-50 px-1.5 py-0.5 rounded-full">
               {event.participationMethod}
             </span>
           </div>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-xs text-text-muted shrink-0">{dateLabel}</span>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="text-[11px] text-text-muted shrink-0">{dateLabel}</span>
           <a
             href={event.link}
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClickApply}
-            className="text-xs font-semibold bg-primary-400 hover:bg-primary-500 text-white px-4 py-2 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
+            className="text-xs font-semibold bg-primary-400 hover:bg-primary-500 text-white px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
           >
             신청하기
             <span className="text-[10px] opacity-80">→</span>
