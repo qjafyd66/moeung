@@ -54,26 +54,26 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
     : `마감 ${new Date(event.deadline).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}`;
 
   return (
-    <div className="bg-white rounded-2xl shadow-md border border-primary-100 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
-      <div className="p-3 flex flex-col flex-1">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-600">
+    <div className="bg-white rounded-xl shadow-sm border border-primary-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+      <div className="px-3 py-2.5 flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-600">
             {event.brand}
           </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${dDayStyles[level]}`}>
+          <span className={`text-[11px] px-2 py-0.5 rounded-full ${dDayStyles[level]}`}>
             {label}
           </span>
         </div>
 
-        <h2 className="text-sm font-bold text-text-primary mb-0.5 leading-snug line-clamp-1">
+        <h2 className="text-sm font-bold text-text-primary leading-snug line-clamp-1">
           {event.title}
         </h2>
-        <p className="text-xs text-text-secondary leading-relaxed line-clamp-2 flex-1">
+        <p className="text-xs text-text-secondary line-clamp-1">
           {event.description}
         </p>
 
         {event.participationMethod && (
-          <div className="mt-1.5 flex items-center gap-1">
+          <div className="flex items-center gap-1">
             <span className="text-[10px] text-text-muted">참여방법</span>
             <span className="text-[10px] font-medium text-text-secondary bg-gray-50 px-1.5 py-0.5 rounded-full">
               {event.participationMethod}
@@ -81,17 +81,16 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
           </div>
         )}
 
-        <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 pt-0.5">
           <span className="text-[11px] text-text-muted shrink-0">{dateLabel}</span>
           <a
             href={event.link}
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClickApply}
-            className="text-xs font-semibold bg-primary-400 hover:bg-primary-500 text-white px-3 py-1.5 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
+            className="text-[11px] font-semibold bg-primary-400 hover:bg-primary-500 text-white px-3 py-1 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
           >
-            신청하기
-            <span className="text-[10px] opacity-80">→</span>
+            신청하기 →
           </a>
         </div>
       </div>
