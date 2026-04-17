@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import EventCard from "@/components/EventCard";
 import { useEvents } from "@/context/EventsContext";
@@ -12,7 +12,6 @@ export default function Home() {
   const [sortOrder, setSortOrder] = useState("deadline");
   const [rankIndex, setRankIndex] = useState(0);
   const [rankOpen, setRankOpen] = useState(false);
-  const rankRef = useRef<HTMLDivElement>(null);
 
   const isDiscovery = !activeCategory;
 
@@ -35,19 +34,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [popularBrands.length]);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent | TouchEvent) {
-      if (rankRef.current && !rankRef.current.contains(e.target as Node)) {
-        setRankOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
 
   const goHome = () => {
     setActiveCategory(null);
@@ -148,7 +134,7 @@ export default function Home() {
             <>
               {/* 인기 순위 롤링 + 클릭/hover 전체 목록 */}
               {popularBrands.length > 0 && (
-                <div className="relative mb-8" ref={rankRef}>
+                <div className="relative mb-8">
                   {/* 롤링 바 */}
                   <button
                     onClick={() => setRankOpen((o) => !o)}
@@ -174,6 +160,8 @@ export default function Home() {
 
                   {/* 클릭 시 전체 목록 */}
                   {rankOpen && (
+                    <>
+                    <div className="fixed inset-0 z-10" onClick={() => setRankOpen(false)} />
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border border-primary-100 shadow-lg overflow-hidden z-20">
                       {popularBrands.map((brand, i) => (
                         <button
@@ -196,6 +184,7 @@ export default function Home() {
                         </button>
                       ))}
                     </div>
+                    </>
                   )}
                 </div>
               )}
