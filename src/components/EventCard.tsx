@@ -47,7 +47,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
   const isUpcoming = event.startDate && new Date(event.startDate) > today;
 
-  const dateLabel = isUpcoming
+  const dateLabel = event.startDate
     ? `${new Date(event.startDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })} 시작`
     : !event.deadline
     ? "마감일 미정"
