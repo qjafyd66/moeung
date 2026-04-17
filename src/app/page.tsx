@@ -11,6 +11,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("deadline");
   const [rankIndex, setRankIndex] = useState(0);
+  const [rankOpen, setRankOpen] = useState(false);
 
   const isDiscovery = !activeCategory;
 
@@ -130,13 +131,13 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {/* 인기 순위 롤링 + hover 전체 목록 */}
+              {/* 인기 순위 롤링 + 클릭/hover 전체 목록 */}
               {popularBrands.length > 0 && (
-                <div className="relative mb-8 group">
+                <div className="relative mb-8">
                   {/* 롤링 바 */}
                   <button
-                    onClick={() => setSearchQuery(popularBrands[rankIndex])}
-                    className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 group-hover:border-primary-200 shadow-sm px-4 py-3 w-full transition-colors overflow-hidden"
+                    onClick={() => setRankOpen((o) => !o)}
+                    className={`flex items-center gap-3 bg-white rounded-2xl border shadow-sm px-4 py-3 w-full transition-colors overflow-hidden ${rankOpen ? "border-primary-200" : "border-gray-100 hover:border-primary-200"}`}
                   >
                     <span className="text-xs font-bold text-primary-400 flex-shrink-0">인기 순위</span>
                     <span className="w-px h-4 bg-gray-200 flex-shrink-0" />
@@ -151,34 +152,36 @@ export default function Home() {
                     <span key={rankIndex} className="text-sm font-semibold text-text-primary flex-1 text-left animate-slide-up">
                       {popularBrands[rankIndex]}
                     </span>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted flex-shrink-0 transition-transform duration-150 group-hover:rotate-180">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-text-muted flex-shrink-0 transition-transform duration-150 ${rankOpen ? "rotate-180" : ""}`}>
                       <polyline points="6 9 12 15 18 9"/>
                     </svg>
                   </button>
 
-                  {/* hover 시 전체 목록 */}
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border border-primary-100 shadow-lg overflow-hidden z-20 invisible opacity-0 group-hover:visible group-hover:opacity-100 -translate-y-1 group-hover:translate-y-0 transition-all duration-150">
-                    {popularBrands.map((brand, i) => (
-                      <button
-                        key={brand}
-                        onClick={() => setSearchQuery(brand)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 text-left ${i === rankIndex ? "bg-primary-50" : ""}`}
-                      >
-                        <span className={`text-xs font-extrabold w-6 flex-shrink-0 ${
-                          i === 0 ? "text-yellow-400" :
-                          i === 1 ? "text-sky-400" :
-                          i === 2 ? "text-orange-400" :
-                          "text-gray-300"
-                        }`}>
-                          {i + 1}위
-                        </span>
-                        <span className="text-sm font-medium text-text-primary flex-1">{brand}</span>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted flex-shrink-0">
-                          <polyline points="9 18 15 12 9 6"/>
-                        </svg>
-                      </button>
-                    ))}
-                  </div>
+                  {/* 클릭 시 전체 목록 */}
+                  {rankOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl border border-primary-100 shadow-lg overflow-hidden z-20">
+                      {popularBrands.map((brand, i) => (
+                        <button
+                          key={brand}
+                          onClick={() => { setSearchQuery(brand); setRankOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-50 transition-colors border-b border-gray-50 last:border-b-0 text-left ${i === rankIndex ? "bg-primary-50" : ""}`}
+                        >
+                          <span className={`text-xs font-extrabold w-6 flex-shrink-0 ${
+                            i === 0 ? "text-yellow-400" :
+                            i === 1 ? "text-sky-400" :
+                            i === 2 ? "text-orange-400" :
+                            "text-gray-300"
+                          }`}>
+                            {i + 1}위
+                          </span>
+                          <span className="text-sm font-medium text-text-primary flex-1">{brand}</span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted flex-shrink-0">
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
