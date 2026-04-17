@@ -18,7 +18,7 @@ function getDDay(deadline: string, startDate: string): {
     }
   }
 
-  if (!deadline) return { label: "미정", level: "tbd" };
+  if (!deadline) return { label: "마감일 미정", level: "tbd" };
 
   const end = new Date(deadline);
   end.setHours(0, 0, 0, 0);
@@ -35,7 +35,7 @@ const dDayStyles: Record<string, string> = {
   warning:  "bg-warning text-white font-bold",
   normal:   "bg-primary-100 text-primary-600 font-semibold",
   expired:  "bg-gray-200 text-gray-500 font-semibold",
-  tbd:      "bg-gray-100 text-gray-500 font-semibold",
+  tbd:      "bg-gray-100 text-gray-500 font-semibold text-[10px]",
   upcoming: "bg-primary-50 text-primary-500 font-semibold",
 };
 
