@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import EventCard from "@/components/EventCard";
 import { useEvents } from "@/context/EventsContext";
@@ -12,6 +12,7 @@ export default function Home() {
   const [sortOrder, setSortOrder] = useState("deadline");
   const [rankIndex, setRankIndex] = useState(0);
   const [rankOpen, setRankOpen] = useState(false);
+  const rankRef = useRef<HTMLDivElement>(null);
 
   const isDiscovery = !activeCategory;
 
@@ -33,6 +34,20 @@ export default function Home() {
     }, 2500);
     return () => clearInterval(timer);
   }, [popularBrands.length]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent | TouchEvent) {
+      if (rankRef.current && !rankRef.current.contains(e.target as Node)) {
+        setRankOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   const goHome = () => {
     setActiveCategory(null);
@@ -133,7 +148,7 @@ export default function Home() {
             <>
               {/* 인기 순위 롤링 + 클릭/hover 전체 목록 */}
               {popularBrands.length > 0 && (
-                <div className="relative mb-8">
+                <div className="relative mb-8" ref={rankRef}>
                   {/* 롤링 바 */}
                   <button
                     onClick={() => setRankOpen((o) => !o)}
