@@ -6,10 +6,15 @@ import EventCard from "@/components/EventCard";
 import { useEvents } from "@/context/EventsContext";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import LoginModal from "@/components/LoginModal";
+import SignupModal from "@/components/SignupModal";
+import NicknameSetupModal from "@/components/NicknameSetupModal";
 
 export default function Home() {
   const { events, clicks, categories, recordClick, recordView } = useEvents();
-  const { user, signInWithKakao, signOut } = useAuth();
+  const { user, profile, signOut, needsNickname } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("deadline");
@@ -104,7 +109,7 @@ export default function Home() {
             {user ? (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-text-secondary hidden sm:block">
-                  {user.user_metadata?.name ?? user.email ?? "카카오 유저"}
+                  {profile?.nickname ?? "닉네임 설정 필요"}
                 </span>
                 <button
                   onClick={signOut}
@@ -115,11 +120,10 @@ export default function Home() {
               </div>
             ) : (
               <button
-                onClick={signInWithKakao}
-                className="text-sm font-semibold px-4 py-2 rounded-xl bg-[#FEE500] text-[#191919] hover:bg-[#F5DC00] transition-colors flex items-center gap-1.5"
+                onClick={() => setShowLogin(true)}
+                className="text-sm font-semibold px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-700 transition-colors"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#191919"><path d="M12 3C6.477 3 2 6.477 2 10.8c0 2.7 1.61 5.08 4.04 6.54L5.1 21l4.3-2.84c.85.15 1.71.24 2.6.24 5.523 0 10-3.477 10-7.8S17.523 3 12 3z"/></svg>
-                카카오 로그인
+                로그인
               </button>
             )}
             <button className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-400 text-white hover:bg-primary-500 transition-colors">
@@ -322,6 +326,10 @@ export default function Home() {
           </main>
         </>
       )}
+
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onSignUp={() => setShowSignup(true)} />}
+      {showSignup && <SignupModal onClose={() => setShowSignup(false)} onLogin={() => setShowLogin(true)} />}
+      {needsNickname && <NicknameSetupModal />}
 
       <footer className="text-center py-8 text-xs text-text-muted">
         © 2026 모응. 내 다음 차를 먼저 만나다.
