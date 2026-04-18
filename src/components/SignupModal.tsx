@@ -9,30 +9,21 @@ type Props = {
 };
 
 export default function SignupModal({ onClose, onLogin }: Props) {
-  const { signUpWithEmail, checkNickname } = useAuth();
+  const { signUpWithEmail } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [nicknameStatus, setNicknameStatus] = useState<"idle" | "ok" | "taken" | "checking">("idle");
   const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const handleCheckNickname = async () => {
-    if (!nickname.trim()) return;
-    setNicknameStatus("checking");
-    const taken = await checkNickname(nickname.trim());
-    setNicknameStatus(taken ? "taken" : "ok");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (nicknameStatus !== "ok") { setError("닉네임 중복 확인을 해주세요."); return; }
     if (password.length < 6) { setError("비밀번호는 6자 이상이어야 해요."); return; }
     setLoading(true);
     setError("");
-    const err = await signUpWithEmail(email, password, nickname.trim());
+    const err = await signUpWithEmail(email, password);
     if (err) setError(err);
-    else onClose();
+    else setDone(true);
     setLoading(false);
   };
 
@@ -49,64 +40,55 @@ export default function SignupModal({ onClose, onLogin }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="email"
-            placeholder="이메일"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted"
-          />
-          <input
-            type="password"
-            placeholder="비밀번호 (6자 이상)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted"
-          />
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="닉네임"
-              value={nickname}
-              onChange={(e) => { setNickname(e.target.value); setNicknameStatus("idle"); }}
-              required
-              className={`flex-1 px-4 py-3 text-sm border rounded-xl focus:outline-none text-text-primary placeholder:text-text-muted transition-colors ${
-                nicknameStatus === "ok" ? "border-green-400 focus:border-green-400" :
-                nicknameStatus === "taken" ? "border-red-400 focus:border-red-400" :
-                "border-gray-200 focus:border-primary-400"
-              }`}
-            />
-            <button
-              type="button"
-              onClick={handleCheckNickname}
-              disabled={!nickname.trim() || nicknameStatus === "checking"}
-              className="px-3 py-3 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl transition-colors disabled:opacity-40 whitespace-nowrap"
-            >
-              중복확인
+        {done ? (
+          <div className="flex flex-col gap-4 text-center py-4">
+            <div className="text-4xl">✉️</div>
+            <p className="text-sm font-bold text-text-primary">이메일을 확인해주세요</p>
+            <p className="text-xs text-text-muted leading-relaxed">
+              <span className="font-semibold text-primary-400">{email}</span>로 인증 메일을 보냈어요.<br />
+              인증 후 로그인하면 닉네임을 설정할 수 있어요.
+            </p>
+            <button onClick={() => { onClose(); onLogin(); }} className="w-full py-3 bg-primary-400 text-white text-sm font-bold rounded-xl hover:bg-primary-500 transition-colors">
+              로그인하러 가기
             </button>
           </div>
-          {nicknameStatus === "ok" && <p className="text-xs text-green-500 -mt-1">사용 가능한 닉네임이에요.</p>}
-          {nicknameStatus === "taken" && <p className="text-xs text-red-500 -mt-1">이미 사용 중인 닉네임이에요.</p>}
+        ) : (
+          <>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <input
+                type="email"
+                placeholder="이메일"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted"
+              />
+              <input
+                type="password"
+                placeholder="비밀번호 (6자 이상)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted"
+              />
+              {error && <p className="text-xs text-red-500">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 mt-1"
+              >
+                {loading ? "처리 중..." : "이메일 인증 받기"}
+              </button>
+            </form>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 mt-1"
-          >
-            {loading ? "가입 중..." : "회원가입"}
-          </button>
-        </form>
-
-        <button
-          onClick={() => { onClose(); onLogin(); }}
-          className="text-xs text-text-muted hover:text-primary-400 transition-colors text-center"
-        >
-          이미 계정이 있어요 → 로그인
-        </button>
+            <button
+              onClick={() => { onClose(); onLogin(); }}
+              className="text-xs text-text-muted hover:text-primary-400 transition-colors text-center"
+            >
+              이미 계정이 있어요 → 로그인
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ type AuthContextType = {
   loading: boolean;
   signInWithKakao: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<string | null>;
-  signUpWithEmail: (email: string, password: string, nickname: string) => Promise<string | null>;
+  signUpWithEmail: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   checkNickname: (nickname: string) => Promise<boolean>;
   saveProfile: (userId: string, nickname: string) => Promise<string | null>;
@@ -81,15 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? error.message : null;
   };
 
-  const signUpWithEmail = async (email: string, password: string, nickname: string): Promise<string | null> => {
-    const taken = await checkNickname(nickname);
-    if (taken) return "이미 사용 중인 닉네임이에요.";
-    const { data, error } = await supabase.auth.signUp({ email, password });
+  const signUpWithEmail = async (email: string, password: string): Promise<string | null> => {
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) return error.message;
-    if (data.user) {
-      const err = await saveProfile(data.user.id, nickname);
-      if (err) return err;
-    }
     return null;
   };
 

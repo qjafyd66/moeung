@@ -9,12 +9,14 @@ import { supabase } from "@/lib/supabase";
 import LoginModal from "@/components/LoginModal";
 import SignupModal from "@/components/SignupModal";
 import NicknameSetupModal from "@/components/NicknameSetupModal";
+import MyPageModal from "@/components/MyPageModal";
 
 export default function Home() {
   const { events, clicks, categories, recordClick, recordView } = useEvents();
-  const { user, profile, signOut, needsNickname } = useAuth();
+  const { user, profile, needsNickname } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [showMyPage, setShowMyPage] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("deadline");
@@ -107,17 +109,12 @@ export default function Home() {
           {/* 우측 버튼 */}
           <div className="ml-auto flex items-center gap-2">
             {user ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-text-secondary hidden sm:block">
-                  {profile?.nickname ?? "닉네임 설정 필요"}
-                </span>
-                <button
-                  onClick={signOut}
-                  className="text-sm font-semibold px-4 py-2 rounded-xl bg-gray-100 text-text-secondary hover:bg-gray-200 transition-colors"
-                >
-                  로그아웃
-                </button>
-              </div>
+              <button
+                onClick={() => setShowMyPage(true)}
+                className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors"
+              >
+                {profile?.nickname ?? "내 정보"}
+              </button>
             ) : (
               <button
                 onClick={() => setShowLogin(true)}
@@ -329,7 +326,8 @@ export default function Home() {
 
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onSignUp={() => setShowSignup(true)} />}
       {showSignup && <SignupModal onClose={() => setShowSignup(false)} onLogin={() => setShowLogin(true)} />}
-      {needsNickname && <NicknameSetupModal />}
+      {showMyPage && <MyPageModal onClose={() => setShowMyPage(false)} />}
+      {needsNickname && !showMyPage && <NicknameSetupModal />}
 
       <footer className="text-center py-8 text-xs text-text-muted">
         © 2026 모응. 내 다음 차를 먼저 만나다.
