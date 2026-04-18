@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Event } from "@/data/events";
 
 function getDDay(deadline: string, startDate: string): {
@@ -42,7 +42,27 @@ const dDayStyles: Record<string, string> = {
 
 export default function EventCard({ event, onClickApply }: { event: Event; onClickApply?: () => void }) {
   const [descOpen, setDescOpen] = useState(false);
-  const { label, level } = getDDay(event.deadline, event.startDate);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (el) {
+      setIsTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, [event.description]);
+
+  useEffect(() => {
+    if (!descOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setDescOpen(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [descOpen]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -53,15 +73,18 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
     ? "상시 운영"
     : `마감 ${new Date(event.deadline).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}`;
 
+  const { label, level } = getDDay(event.deadline, event.startDate);
+
+  const handleCardClick = () => {
+    if (isTruncated) setDescOpen((v) => !v);
+  };
+
   return (
     <div
-      className="relative bg-white rounded-xl shadow-sm border border-primary-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col cursor-pointer"
-      onClick={() => setDescOpen((v) => !v)}
+      ref={cardRef}
+      className={`relative bg-white rounded-xl shadow-sm border border-primary-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col ${isTruncated ? "cursor-pointer" : ""}`}
+      onClick={handleCardClick}
     >
-      {descOpen && (
-        <div className="fixed inset-0 z-10" onClick={() => setDescOpen(false)} />
-      )}
-
       <div className="px-3 py-2.5 flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-600">
@@ -78,6 +101,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
         <div className="relative">
           <p
+            ref={descRef}
             className="text-xs text-text-secondary line-clamp-1 select-none"
           >
             {event.description}
@@ -88,7 +112,6 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
               <div className="bg-white border border-primary-200 rounded-xl shadow-xl p-3 text-xs text-text-secondary leading-relaxed">
                 {event.description}
               </div>
-              {/* 아래 방향 화살표 */}
               <div className="w-3 h-3 bg-white border-b border-r border-primary-200 rotate-45 mx-4 -mt-1.5" />
             </div>
           )}
