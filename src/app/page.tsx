@@ -112,6 +112,27 @@ export default function Home() {
       {isDiscovery ? (
         /* ── 디스커버리(랜딩) 화면 ── */
         <div className="max-w-3xl mx-auto px-4 pt-8 pb-16">
+          {/* 히어로 문구 */}
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">응모는 <span className="text-primary-400">모응</span>에서</h2>
+            <p className="text-sm text-text-muted mt-1">시승·체험·응모 이벤트를 한곳에서</p>
+          </div>
+
+          {/* 히어로 문구 */}
+          <div className="mb-6 text-center">
+            <h2 className="text-xl font-extrabold text-text-primary tracking-tight leading-snug">
+              모든 응모는 한눈에 볼 수 있도록<br />
+              <span className="text-primary-400">모응</span>습니다!
+            </h2>
+          </div>
+
+          {/* 히어로 문구 */}
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
+              이벤트를 한곳에 <span className="text-primary-400">모응!</span>
+            </h2>
+          </div>
+
           {/* 검색 */}
           <div className="mb-6">
             <div className="relative">
