@@ -109,8 +109,12 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
           {descOpen && (
             <div className="absolute left-0 right-0 bottom-full mb-2 z-20 animate-fade-up">
-              <div className="bg-white border border-primary-200 rounded-xl shadow-xl p-3 text-xs text-text-secondary leading-relaxed">
-                {event.description}
+              <div className="bg-white border border-primary-200 rounded-xl shadow-xl p-3 flex flex-col gap-1.5">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-600 self-start">
+                  {event.brand}
+                </span>
+                <p className="text-sm font-bold text-text-primary leading-snug">{event.title}</p>
+                <p className="text-xs text-text-secondary leading-relaxed">{event.description}</p>
               </div>
               <div className="w-3 h-3 bg-white border-b border-r border-primary-200 rotate-45 mx-4 -mt-1.5" />
             </div>
