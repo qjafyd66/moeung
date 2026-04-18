@@ -50,7 +50,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
   const dateLabel = event.startDate
     ? `${new Date(event.startDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })} 시작`
     : !event.deadline
-    ? "마감일 미정"
+    ? ""
     : `마감 ${new Date(event.deadline).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}`;
 
   return (
