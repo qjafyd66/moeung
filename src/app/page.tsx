@@ -93,7 +93,7 @@ export default function Home() {
 
           {/* 로고 + 이름 */}
           <button onClick={goHome} className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="모응 로고" width={36} height={36} className="rounded-xl" />
+            <Image src="/logo.png" alt="모응 로고" width={52} height={52} className="rounded-xl" />
             <h1 className="text-xl font-extrabold text-primary-400 leading-tight tracking-tight">모응</h1>
           </button>
 
