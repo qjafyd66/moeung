@@ -125,7 +125,7 @@ export default function Home() {
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">🔍</span>
               <input
                 type="text"
-                placeholder="브랜드나 이벤트 검색"
+                placeholder="브랜드나 이벤트를 입력해 주세요"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-11 pr-4 py-3.5 text-sm bg-white border border-primary-100 rounded-2xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted transition-colors shadow-sm"
@@ -265,7 +265,7 @@ export default function Home() {
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none">🔍</span>
               <input
                 type="text"
-                placeholder="브랜드나 차종 검색"
+                placeholder="브랜드나 이벤트를 입력해 주세요"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-primary-100 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted transition-colors"
