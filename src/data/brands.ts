@@ -14,7 +14,7 @@ export const BRANDS: Brand[] = [
   // 자동차 - 수입
   { id: "tesla", name: "테슬라", category: "car", color: "#CC0000", logoUrl: "https://cdn.simpleicons.org/tesla/CC0000" },
   { id: "bmw", name: "BMW", category: "car", color: "#1C69D4", logoUrl: "https://cdn.simpleicons.org/bmw/1C69D4" },
-  { id: "mercedes", name: "메르세데스-벤츠", category: "car", color: "#222222", logoUrl: "https://cdn.simpleicons.org/mercedes/222222" },
+  { id: "mercedes", name: "벤츠", category: "car", color: "#222222", logoUrl: "https://cdn.simpleicons.org/mercedes/222222" },
   { id: "audi", name: "아우디", category: "car", color: "#BB0A30", logoUrl: "https://cdn.simpleicons.org/audi/BB0A30" },
   { id: "volvo", name: "볼보", category: "car", color: "#003057", logoUrl: "https://cdn.simpleicons.org/volvo/003057" },
   { id: "porsche", name: "포르쉐", category: "car", color: "#D5001C", logoUrl: "https://cdn.simpleicons.org/porsche/D5001C" },
