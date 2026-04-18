@@ -142,7 +142,7 @@ export default function Home() {
               {filtered.length === 0 ? (
                 <div className="text-center py-16 text-text-muted text-sm">검색 결과가 없습니다.</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   {filtered.map((event) => (
                     <EventCard key={event.id} event={event} onClickApply={() => recordClick(event.id)} />
                   ))}
@@ -284,7 +284,7 @@ export default function Home() {
 
           {/* 이벤트 그리드 */}
           <main className="max-w-3xl mx-auto px-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4">
               {filtered.map((event) => (
                 <EventCard
                   key={event.id}

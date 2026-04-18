@@ -127,7 +127,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
         )}
 
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="text-[11px] text-text-muted shrink-0">{dateLabel}</span>
+          <span className="text-[11px] text-text-muted min-w-0 truncate">{dateLabel}</span>
           <a
             href={event.link}
             target="_blank"
