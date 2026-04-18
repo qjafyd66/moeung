@@ -54,7 +54,10 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
     : `마감 ${new Date(event.deadline).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}`;
 
   return (
-    <div className="relative bg-white rounded-xl shadow-sm border border-primary-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+    <div
+      className="relative bg-white rounded-xl shadow-sm border border-primary-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col cursor-pointer"
+      onClick={() => setDescOpen((v) => !v)}
+    >
       {descOpen && (
         <div className="fixed inset-0 z-10" onClick={() => setDescOpen(false)} />
       )}
@@ -75,8 +78,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
         <div className="relative">
           <p
-            className="text-xs text-text-secondary line-clamp-1 cursor-pointer select-none"
-            onClick={() => setDescOpen((v) => !v)}
+            className="text-xs text-text-secondary line-clamp-1 select-none"
           >
             {event.description}
           </p>
@@ -107,7 +109,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
             href={event.link}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={onClickApply}
+            onClick={(e) => { e.stopPropagation(); onClickApply?.(); }}
             className="text-[11px] font-semibold bg-primary-400 hover:bg-primary-500 text-white px-3 py-1 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
           >
             신청하기 →
