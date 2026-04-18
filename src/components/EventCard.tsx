@@ -75,7 +75,7 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
         <div className="relative">
           <p
-            className="text-xs text-text-secondary line-clamp-2 cursor-pointer select-none"
+            className="text-xs text-text-secondary line-clamp-1 cursor-pointer select-none"
             onClick={() => setDescOpen((v) => !v)}
           >
             {event.description}
