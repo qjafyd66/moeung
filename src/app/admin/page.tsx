@@ -116,7 +116,7 @@ export default function AdminPage() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [rightTab, setRightTab] = useState<RightTab>("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory } = useEvents();
+  const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory, reorderCategories } = useEvents();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -604,6 +604,31 @@ export default function AdminPage() {
                         </div>
                       ) : (
                         <div key={cat.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-primary-100 transition-colors">
+                          {/* 순서 버튼 */}
+                          <div className="flex flex-col gap-0.5 flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                const idx = categories.findIndex((c) => c.id === cat.id);
+                                if (idx === 0) return;
+                                const next = [...categories];
+                                [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                                reorderCategories(next);
+                              }}
+                              disabled={categories.findIndex((c) => c.id === cat.id) === 0}
+                              className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >▲</button>
+                            <button
+                              onClick={() => {
+                                const idx = categories.findIndex((c) => c.id === cat.id);
+                                if (idx === categories.length - 1) return;
+                                const next = [...categories];
+                                [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+                                reorderCategories(next);
+                              }}
+                              disabled={categories.findIndex((c) => c.id === cat.id) === categories.length - 1}
+                              className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            >▼</button>
+                          </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-sm font-semibold text-text-primary">{cat.label}</span>
                             <span className="text-xs text-text-muted ml-2">{cat.desc}</span>

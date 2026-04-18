@@ -63,6 +63,7 @@ type EventsContextType = {
   addCategory: (cat: Omit<CategoryConfig, "id">) => Promise<void>;
   updateCategory: (cat: CategoryConfig) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  reorderCategories: (reordered: CategoryConfig[]) => Promise<void>;
 };
 
 const EventsContext = createContext<EventsContextType | null>(null);
@@ -141,11 +142,20 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     setCategories((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const reorderCategories = async (reordered: CategoryConfig[]) => {
+    setCategories(reordered);
+    await Promise.all(
+      reordered.map((cat, i) =>
+        supabase.from("categories").update({ sort_order: i + 1 }).eq("id", cat.id)
+      )
+    );
+  };
+
   return (
     <EventsContext.Provider value={{
       events, clicks, categories, loading,
       addEvent, updateEvent, deleteEvent, recordClick,
-      addCategory, updateCategory, deleteCategory,
+      addCategory, updateCategory, deleteCategory, reorderCategories,
     }}>
       {children}
     </EventsContext.Provider>
