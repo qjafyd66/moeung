@@ -115,7 +115,7 @@ export default function Home() {
           {/* 히어로 문구 */}
           <div className="mb-6 text-center">
             <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
-              이벤트를 한곳에 <span className="text-primary-400">모응!</span>
+              이벤트를 한곳에 <span className="text-primary-400">모응</span>
             </h2>
           </div>
 
