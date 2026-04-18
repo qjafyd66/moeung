@@ -42,16 +42,7 @@ const dDayStyles: Record<string, string> = {
 
 export default function EventCard({ event, onClickApply }: { event: Event; onClickApply?: () => void }) {
   const [descOpen, setDescOpen] = useState(false);
-  const [isTruncated, setIsTruncated] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const descRef = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    const el = descRef.current;
-    if (el) {
-      setIsTruncated(el.scrollHeight > el.clientHeight);
-    }
-  }, [event.description]);
 
   useEffect(() => {
     if (!descOpen) return;
@@ -76,13 +67,13 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
   const { label, level } = getDDay(event.deadline, event.startDate);
 
   const handleCardClick = () => {
-    if (isTruncated) setDescOpen((v) => !v);
+    setDescOpen((v) => !v);
   };
 
   return (
     <div
       ref={cardRef}
-      className={`relative bg-white rounded-xl shadow-sm border border-primary-100 transition-all duration-200 flex flex-col ${isTruncated ? "hover:shadow-md hover:-translate-y-0.5 cursor-pointer" : ""}`}
+      className="relative bg-white rounded-xl shadow-sm border border-primary-100 transition-all duration-200 flex flex-col hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
       onClick={handleCardClick}
     >
       <div className="px-3 py-2.5 flex flex-col gap-1">
@@ -101,7 +92,6 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
 
         <div className="relative">
           <p
-            ref={descRef}
             className="text-xs text-text-secondary line-clamp-1 select-none"
           >
             {event.description}
