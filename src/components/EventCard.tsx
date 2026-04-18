@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Event } from "@/data/events";
 
 function getDDay(deadline: string, startDate: string): {
@@ -40,12 +41,11 @@ const dDayStyles: Record<string, string> = {
 };
 
 export default function EventCard({ event, onClickApply }: { event: Event; onClickApply?: () => void }) {
+  const [descOpen, setDescOpen] = useState(false);
   const { label, level } = getDDay(event.deadline, event.startDate);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const isUpcoming = event.startDate && new Date(event.startDate) > today;
 
   const dateLabel = event.startDate
     ? `${new Date(event.startDate).toLocaleDateString("ko-KR", { month: "long", day: "numeric" })} 시작`
@@ -54,7 +54,11 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
     : `마감 ${new Date(event.deadline).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}`;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-primary-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+    <div className="relative bg-white rounded-xl shadow-sm border border-primary-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+      {descOpen && (
+        <div className="fixed inset-0 z-10" onClick={() => setDescOpen(false)} />
+      )}
+
       <div className="px-3 py-2.5 flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-600">
@@ -68,9 +72,25 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
         <h2 className="text-sm font-bold text-text-primary leading-snug line-clamp-1">
           {event.title}
         </h2>
-        <p className="text-xs text-text-secondary line-clamp-1">
-          {event.description}
-        </p>
+
+        <div className="relative">
+          <p
+            className="text-xs text-text-secondary line-clamp-2 cursor-pointer select-none"
+            onClick={() => setDescOpen((v) => !v)}
+          >
+            {event.description}
+          </p>
+
+          {descOpen && (
+            <div className="absolute left-0 right-0 bottom-full mb-2 z-20 animate-fade-up">
+              <div className="bg-white border border-primary-200 rounded-xl shadow-xl p-3 text-xs text-text-secondary leading-relaxed">
+                {event.description}
+              </div>
+              {/* 아래 방향 화살표 */}
+              <div className="w-3 h-3 bg-white border-b border-r border-primary-200 rotate-45 mx-4 -mt-1.5" />
+            </div>
+          )}
+        </div>
 
         {event.participationMethod && (
           <div className="flex items-center gap-1">
