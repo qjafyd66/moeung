@@ -40,7 +40,7 @@ const dDayStyles: Record<string, string> = {
   upcoming: "bg-primary-50 text-primary-500 font-semibold",
 };
 
-export default function EventCard({ event, onClickApply }: { event: Event; onClickApply?: () => void }) {
+export default function EventCard({ event, onClickApply, onClickView }: { event: Event; onClickApply?: () => void; onClickView?: () => void }) {
   const [descOpen, setDescOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +67,10 @@ export default function EventCard({ event, onClickApply }: { event: Event; onCli
   const { label, level } = getDDay(event.deadline, event.startDate);
 
   const handleCardClick = () => {
-    setDescOpen((v) => !v);
+    setDescOpen((v) => {
+      if (!v) onClickView?.();
+      return !v;
+    });
   };
 
   return (

@@ -7,7 +7,7 @@ import { useEvents } from "@/context/EventsContext";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
-  const { events, clicks, categories, recordClick } = useEvents();
+  const { events, clicks, categories, recordClick, recordView } = useEvents();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("deadline");
@@ -144,7 +144,7 @@ export default function Home() {
               ) : (
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   {filtered.map((event) => (
-                    <EventCard key={event.id} event={event} onClickApply={() => recordClick(event.id)} />
+                    <EventCard key={event.id} event={event} onClickApply={() => recordClick(event.id)} onClickView={() => recordView(event.id)} />
                   ))}
                 </div>
               )}
@@ -290,6 +290,7 @@ export default function Home() {
                   key={event.id}
                   event={event}
                   onClickApply={() => recordClick(event.id)}
+                  onClickView={() => recordView(event.id)}
                 />
               ))}
             </div>

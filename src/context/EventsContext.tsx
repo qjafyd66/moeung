@@ -54,12 +54,14 @@ function rowToCategory(row: any): CategoryConfig {
 type EventsContextType = {
   events: Event[];
   clicks: Record<number, number>;
+  views: Record<number, number>;
   categories: CategoryConfig[];
   loading: boolean;
   addEvent: (event: Omit<Event, "id">) => Promise<void>;
   updateEvent: (event: Event) => Promise<void>;
   deleteEvent: (id: number) => Promise<void>;
   recordClick: (id: number) => Promise<void>;
+  recordView: (id: number) => Promise<void>;
   addCategory: (cat: Omit<CategoryConfig, "id">) => Promise<void>;
   updateCategory: (cat: CategoryConfig) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
@@ -71,6 +73,7 @@ const EventsContext = createContext<EventsContextType | null>(null);
 export function EventsProvider({ children }: { children: ReactNode }) {
   const [events, setEvents] = useState<Event[]>([]);
   const [clicks, setClicks] = useState<Record<number, number>>({});
+  const [views, setViews] = useState<Record<number, number>>({});
   const [categories, setCategories] = useState<CategoryConfig[]>(defaultCategories);
   const [loading, setLoading] = useState(true);
 
@@ -85,9 +88,14 @@ export function EventsProvider({ children }: { children: ReactNode }) {
 
       if (eventsData) {
         setEvents(eventsData.map(rowToEvent));
-        const map: Record<number, number> = {};
-        eventsData.forEach((r) => { map[r.id] = r.click_count ?? 0; });
-        setClicks(map);
+        const clickMap: Record<number, number> = {};
+        const viewMap: Record<number, number> = {};
+        eventsData.forEach((r) => {
+          clickMap[r.id] = r.click_count ?? 0;
+          viewMap[r.id] = r.view_count ?? 0;
+        });
+        setClicks(clickMap);
+        setViews(viewMap);
       }
 
       if (categoriesData && categoriesData.length > 0) {
@@ -119,6 +127,12 @@ export function EventsProvider({ children }: { children: ReactNode }) {
     const next = (clicks[id] ?? 0) + 1;
     await supabase.from("events").update({ click_count: next }).eq("id", id);
     setClicks((prev) => ({ ...prev, [id]: next }));
+  };
+
+  const recordView = async (id: number) => {
+    const next = (views[id] ?? 0) + 1;
+    await supabase.from("events").update({ view_count: next }).eq("id", id);
+    setViews((prev) => ({ ...prev, [id]: next }));
   };
 
   const addCategory = async (cat: Omit<CategoryConfig, "id">) => {
@@ -153,8 +167,8 @@ export function EventsProvider({ children }: { children: ReactNode }) {
 
   return (
     <EventsContext.Provider value={{
-      events, clicks, categories, loading,
-      addEvent, updateEvent, deleteEvent, recordClick,
+      events, clicks, views, categories, loading,
+      addEvent, updateEvent, deleteEvent, recordClick, recordView,
       addCategory, updateCategory, deleteCategory, reorderCategories,
     }}>
       {children}
