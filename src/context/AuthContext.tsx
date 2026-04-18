@@ -17,7 +17,7 @@ type AuthContextType = {
   loading: boolean;
   signInWithKakao: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<string | null>;
-  signUpWithEmail: (email: string, password: string) => Promise<string | null>;
+  signUpWithEmail?: never;
   signOut: () => Promise<void>;
   checkNickname: (nickname: string) => Promise<boolean>;
   saveProfile: (userId: string, nickname: string) => Promise<string | null>;
@@ -81,11 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? error.message : null;
   };
 
-  const signUpWithEmail = async (email: string, password: string): Promise<string | null> => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) return error.message;
-    return null;
-  };
 
   const checkNickname = async (nickname: string): Promise<boolean> => {
     const { data } = await supabase.from("profiles").select("id").eq("nickname", nickname).single();
@@ -108,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, profile, loading,
-      signInWithKakao, signInWithEmail, signUpWithEmail,
+      signInWithKakao, signInWithEmail,
       signOut, checkNickname, saveProfile,
       needsNickname, setNeedsNickname,
     }}>
