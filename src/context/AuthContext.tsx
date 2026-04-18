@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: "kakao",
       options: {
         redirectTo: window.location.origin,
-        scopes: "profile_nickname profile_image",
+        queryParams: { scope: "profile_nickname" },
       },
     });
   };
