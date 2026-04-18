@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import EventCard from "@/components/EventCard";
 import { useEvents } from "@/context/EventsContext";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const { events, clicks, categories, recordClick } = useEvents();
@@ -60,6 +61,17 @@ export default function Home() {
       if (!b.deadline) return -1;
       return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
     });
+
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) return;
+    const timer = setTimeout(() => {
+      supabase.from("search_logs").insert({
+        query: searchQuery.trim(),
+        result_count: filtered.length,
+      });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, filtered.length]);
 
   return (
     <div className="min-h-screen bg-bg-main">
