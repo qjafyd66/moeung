@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         message: {
           to: phone,
-          from: process.env.SOLAPI_SENDER!,
+          from: process.env.SOLAPI_SENDER!.trim(),
           text: `[모응] 인증번호: ${otp} (5분 내 입력해주세요)`,
         },
       }),
