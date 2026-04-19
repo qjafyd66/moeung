@@ -124,7 +124,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5">
+        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-4 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-extrabold text-text-primary">회원가입</h2>
             <button onClick={onClose} className="text-text-muted hover:text-text-secondary">
@@ -169,7 +169,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-4 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-extrabold text-text-primary">회원가입</h2>
           <button onClick={onClose} className="text-text-muted hover:text-text-secondary">
@@ -195,7 +195,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
                 disabled={otpVerified}
                 className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted disabled:bg-gray-50"
               />
-              <button type="button" onClick={handleSendOtp} disabled={loading || phone.length < 10 || otpVerified} className="w-24 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
+              <button type="button" onClick={handleSendOtp} disabled={loading || phone.length < 10 || otpVerified} className="w-20 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
                 {otpSent && !otpVerified ? "재전송" : "인증번호 받기"}
               </button>
             </div>
@@ -214,7 +214,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
                 disabled={!otpSent || otpVerified}
                 className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted tracking-widest text-center font-semibold disabled:bg-gray-50"
               />
-              <button type="button" onClick={handleVerifyOtp} disabled={loading || otp.length < 6 || otpVerified} className="w-24 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
+              <button type="button" onClick={handleVerifyOtp} disabled={loading || otp.length < 6 || otpVerified} className="w-20 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
                 {loading ? "확인 중..." : "확인"}
               </button>
             </div>
@@ -240,7 +240,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
                 setUsernameStatus("checking");
                 const taken = await checkNickname(username.trim());
                 setUsernameStatus(taken ? "taken" : "ok");
-              }} disabled={!username.trim() || usernameStatus === "checking"} className="w-24 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
+              }} disabled={!username.trim() || usernameStatus === "checking"} className="w-20 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
                 중복확인
               </button>
             </div>
