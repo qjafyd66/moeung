@@ -193,10 +193,10 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
                 value={phone}
                 onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 11)); setOtpSent(false); setOtpVerified(false); setOtp(""); setError(""); }}
                 disabled={otpVerified}
-                className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted disabled:bg-gray-50"
+                className="flex-1 min-w-0 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted disabled:bg-gray-50"
               />
               <button type="button" onClick={handleSendOtp} disabled={loading || phone.length < 10 || otpVerified} className="w-20 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
-                {otpSent && !otpVerified ? "재전송" : "인증번호 받기"}
+                {otpSent && !otpVerified ? "재전송" : "인증요청"}
               </button>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
                 onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
                 maxLength={6}
                 disabled={!otpSent || otpVerified}
-                className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted tracking-widest text-center font-semibold disabled:bg-gray-50"
+                className="flex-1 min-w-0 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted tracking-widest text-center font-semibold disabled:bg-gray-50"
               />
               <button type="button" onClick={handleVerifyOtp} disabled={loading || otp.length < 6 || otpVerified} className="w-20 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
                 {loading ? "확인 중..." : "확인"}
@@ -229,7 +229,7 @@ export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
                 placeholder="영문, 숫자, _ (3~20자)"
                 value={username}
                 onChange={(e) => { setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "")); setUsernameStatus("idle"); }}
-                className={`flex-1 px-4 py-3 text-sm border rounded-xl focus:outline-none text-text-primary placeholder:text-text-muted transition-colors ${
+                className={`flex-1 min-w-0 px-4 py-3 text-sm border rounded-xl focus:outline-none text-text-primary placeholder:text-text-muted transition-colors ${
                   usernameStatus === "ok" ? "border-green-400" :
                   usernameStatus === "taken" ? "border-red-400" :
                   "border-gray-200 focus:border-primary-400"
