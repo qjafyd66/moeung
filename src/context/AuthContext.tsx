@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           } else if (isSocial && !p.phone) {
             const pendingPhone = localStorage.getItem("pendingPhone");
             if (pendingPhone) {
-              await supabase.from("profiles").update({ phone: pendingPhone }).eq("id", user.id);
+              await supabase.from("profiles").update({ phone: pendingPhone }).eq("id", session.user.id);
               localStorage.removeItem("pendingPhone");
             } else {
               setNeedsPhone(true);
