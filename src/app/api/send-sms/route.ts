@@ -9,8 +9,8 @@ const supabase = createClient(
 );
 
 function getSolapiAuth() {
-  const apiKey = process.env.SOLAPI_API_KEY!;
-  const apiSecret = process.env.SOLAPI_API_SECRET!;
+  const apiKey = process.env.SOLAPI_API_KEY!.trim();
+  const apiSecret = process.env.SOLAPI_API_SECRET!.trim();
   const date = new Date().toISOString();
   const salt = crypto.randomBytes(16).toString("hex");
   const signature = crypto.createHmac("sha256", apiSecret).update(date + salt).digest("hex");
