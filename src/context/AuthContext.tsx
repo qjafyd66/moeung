@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 export type Profile = {
   id: string;
   nickname: string;
+  phone?: string;
   created_at: string;
 };
 
@@ -16,6 +17,7 @@ type AuthContextType = {
   profile: Profile | null;
   loading: boolean;
   signInWithKakao: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<string | null>;
   signUpWithEmail?: never;
   signOut: () => Promise<void>;
@@ -23,6 +25,8 @@ type AuthContextType = {
   saveProfile: (userId: string, nickname: string) => Promise<string | null>;
   needsNickname: boolean;
   setNeedsNickname: (v: boolean) => void;
+  needsPhone: boolean;
+  setNeedsPhone: (v: boolean) => void;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -33,11 +37,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsNickname, setNeedsNickname] = useState(false);
+  const [needsPhone, setNeedsPhone] = useState(false);
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
     setProfile(data ?? null);
     return data;
+  }
+
+  async function autoCreateSocialProfile(user: import("@supabase/supabase-js").User) {
+    const name = user.user_metadata?.name || user.user_metadata?.full_name || "사용자";
+    let { error } = await supabase.from("profiles").insert({ id: user.id, nickname: name });
+    if (error?.code === "23505") {
+      await supabase.from("profiles").insert({
+        id: user.id,
+        nickname: `${name}_${Math.floor(1000 + Math.random() * 9000)}`,
+      });
+    }
+    const pendingPhone = localStorage.getItem("pendingPhone");
+    if (pendingPhone) {
+      await supabase.from("profiles").update({ phone: pendingPhone }).eq("id", user.id);
+      localStorage.removeItem("pendingPhone");
+    }
+    await loadProfile(user.id);
+    if (!pendingPhone) setNeedsPhone(true);
   }
 
   useEffect(() => {
@@ -46,20 +69,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         const p = await loadProfile(session.user.id);
-        if (!p) setNeedsNickname(true);
+        if (!p) {
+          if (session.user.app_metadata?.provider === "kakao") {
+            await autoCreateSocialProfile(session.user);
+          } else {
+            setNeedsNickname(true);
+          }
+        }
       }
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         const p = await loadProfile(session.user.id);
-        if (!p) setNeedsNickname(true);
+        if (event === "SIGNED_IN") {
+          const provider = session.user.app_metadata?.provider;
+          const isSocial = provider === "kakao" || provider === "google";
+          if (!p) {
+            if (isSocial) await autoCreateSocialProfile(session.user);
+            else setNeedsNickname(true);
+          } else if (isSocial && !p.phone) {
+            const pendingPhone = localStorage.getItem("pendingPhone");
+            if (pendingPhone) {
+              await supabase.from("profiles").update({ phone: pendingPhone }).eq("id", user.id);
+              localStorage.removeItem("pendingPhone");
+            } else {
+              setNeedsPhone(true);
+            }
+          }
+        }
       } else {
         setProfile(null);
         setNeedsNickname(false);
+        setNeedsPhone(false);
       }
     });
 
@@ -73,6 +118,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         redirectTo: window.location.origin,
         queryParams: { scope: "profile_nickname" },
       },
+    });
+  };
+
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
   };
 
@@ -103,9 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, session, profile, loading,
-      signInWithKakao, signInWithEmail,
+      signInWithKakao, signInWithGoogle, signInWithEmail,
       signOut, checkNickname, saveProfile,
       needsNickname, setNeedsNickname,
+      needsPhone, setNeedsPhone,
     }}>
       {children}
     </AuthContext.Provider>

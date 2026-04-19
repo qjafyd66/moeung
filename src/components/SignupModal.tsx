@@ -3,172 +3,287 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import LegalModal from "./LegalModal";
 
 type Props = {
   onClose: () => void;
   onLogin: () => void;
+  onSuccess?: () => void;
 };
 
-type Step = "email" | "otp" | "profile";
+export default function SignupModal({ onClose, onLogin, onSuccess }: Props) {
+  const { checkNickname, saveProfile, setNeedsNickname } = useAuth();
 
-export default function SignupModal({ onClose, onLogin }: Props) {
-  const { checkNickname, saveProfile } = useAuth();
-  const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState("");
+  const [legalModal, setLegalModal] = useState<"terms" | "privacy" | "location" | "marketing" | null>(null);
+  const [agreeAll, setAgreeAll] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
+
+  const [phone, setPhone] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [nickname, setNickname] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const [username, setUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "ok" | "taken" | "checking">("idle");
   const [password, setPassword] = useState("");
-  const [nicknameStatus, setNicknameStatus] = useState<"idle" | "ok" | "taken" | "checking">("idle");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAgreeAll = (checked: boolean) => {
+    setAgreeAll(checked);
+    setAgreeTerms(checked);
+    setAgreePrivacy(checked);
+    setAgreeMarketing(checked);
+  };
+
+  const handleSendOtp = async () => {
+    if (phone.length < 10) { setError("올바른 전화번호를 입력해주세요."); return; }
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
+    const res = await fetch("/api/send-sms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
     });
-    if (error) setError(error.message);
-    else setStep("otp");
+    const data = await res.json();
+    if (!res.ok) { setError(data.error); setLoading(false); return; }
+    setOtpSent(true);
     setLoading(false);
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerifyOtp = async () => {
+    if (otp.length < 6) return;
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
-    if (error) setError("인증코드가 올바르지 않아요.");
-    else setStep("profile");
+
+    const verifyRes = await fetch("/api/verify-sms", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, otp }),
+    });
+    const verifyData = await verifyRes.json();
+    if (!verifyRes.ok) { setError(verifyData.error); setLoading(false); return; }
+
+    const signupRes = await fetch("/api/phone-signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+    const signupData = await signupRes.json();
+    if (!signupRes.ok) { setError(signupData.error); setLoading(false); return; }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: signupData.email,
+      password: signupData.tempPass,
+    });
+    if (signInError) { setError("로그인에 실패했어요. 다시 시도해주세요."); setLoading(false); return; }
+
+    setUserId(signupData.userId);
+    setNeedsNickname(false);
+    setOtpVerified(true);
     setLoading(false);
   };
 
-  const handleCheckNickname = async () => {
-    if (!nickname.trim()) return;
-    setNicknameStatus("checking");
-    const taken = await checkNickname(nickname.trim());
-    setNicknameStatus(taken ? "taken" : "ok");
-  };
-
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (nicknameStatus !== "ok") { setError("닉네임 중복 확인을 해주세요."); return; }
-    if (password.length < 6) { setError("비밀번호는 6자 이상이어야 해요."); return; }
+    if (!otpVerified) { setError("휴대폰 인증을 완료해주세요."); return; }
+    if (usernameStatus !== "ok") { setError("아이디 중복 확인을 해주세요."); return; }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { setError("아이디는 영문, 숫자, _만 사용 가능해요. (3~20자)"); return; }
+    const pwValid = password.length >= 6 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+    if (!pwValid) { setError("비밀번호는 6자 이상, 영문+숫자 조합이어야 해요."); return; }
+    if (password !== passwordConfirm) { setError("비밀번호가 일치하지 않아요."); return; }
+    if (!userId) { setError("인증 정보를 찾을 수 없어요."); return; }
     setLoading(true);
     setError("");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setError("인증 정보를 찾을 수 없어요."); setLoading(false); return; }
-    const { error: pwError } = await supabase.auth.updateUser({ password });
-    if (pwError) { setError(pwError.message); setLoading(false); return; }
-    const err = await saveProfile(user.id, nickname.trim());
+
+    const err = await saveProfile(userId, username.trim());
     if (err) { setError(err); setLoading(false); return; }
-    onClose();
+
+    await supabase.from("profiles").update({ phone }).eq("id", userId);
+
+    await fetch("/api/set-username", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, username: username.trim() }),
+    });
+
+    supabase.auth.updateUser({ password });
+
     setLoading(false);
+    onClose();
+    onSuccess?.();
   };
 
+  // 약관 동의 화면
+  if (!termsConfirmed) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-extrabold text-text-primary">회원가입</h2>
+            <button onClick={onClose} className="text-text-muted hover:text-text-secondary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <p className="text-xs text-text-muted">모응 서비스 이용을 위해 약관에 동의해주세요.</p>
+          <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer">
+            <input type="checkbox" checked={agreeAll} onChange={(e) => handleAgreeAll(e.target.checked)} className="w-4 h-4 accent-primary-400" />
+            <span className="text-sm font-bold text-text-primary">전체 동의</span>
+          </label>
+          <div className="flex flex-col gap-3 px-1">
+            {[
+              { label: "[필수] 이용약관", checked: agreeTerms, setter: setAgreeTerms, type: "terms" as const },
+              { label: "[필수] 개인정보처리방침", checked: agreePrivacy, setter: setAgreePrivacy, type: "privacy" as const },
+              { label: "[선택] 마케팅 정보 수신 동의", checked: agreeMarketing, setter: setAgreeMarketing, type: "marketing" as const },
+            ].map(({ label, checked, setter, type }) => (
+              <label key={type} className="flex items-center justify-between gap-3 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <input type="checkbox" checked={checked} onChange={(e) => { setter(e.target.checked); if (!e.target.checked) setAgreeAll(false); }} className="w-4 h-4 accent-primary-400" />
+                  <span className="text-sm text-text-primary">{label}</span>
+                </div>
+                <button type="button" onClick={() => setLegalModal(type)} className="text-xs text-text-muted underline flex-shrink-0">보기</button>
+              </label>
+            ))}
+          </div>
+          <button type="button" disabled={!agreeTerms || !agreePrivacy} onClick={() => setTermsConfirmed(true)} className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50">
+            다음
+          </button>
+          <button onClick={() => { onClose(); onLogin(); }} className="text-xs text-text-muted hover:text-primary-400 transition-colors text-center">
+            이미 계정이 있어요 → 로그인
+          </button>
+          {legalModal && <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />}
+        </div>
+      </div>
+    );
+  }
+
+  // 가입 정보 입력 화면 (모든 필드 한번에)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5">
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-extrabold text-text-primary">회원가입</h2>
-            <div className="flex gap-1 mt-1.5">
-              {(["email", "otp", "profile"] as Step[]).map((s, i) => (
-                <div key={s} className={`h-1 rounded-full flex-1 transition-colors ${
-                  step === s ? "bg-primary-400" :
-                  ["email", "otp", "profile"].indexOf(step) > i ? "bg-primary-200" : "bg-gray-100"
-                }`} />
-              ))}
-            </div>
-          </div>
-          <button onClick={onClose} className="text-text-muted hover:text-text-secondary transition-colors ml-4">
+          <h2 className="text-lg font-extrabold text-text-primary">회원가입</h2>
+          <button onClick={onClose} className="text-text-muted hover:text-text-secondary">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
 
-        {step === "email" && (
-          <form onSubmit={handleSendOtp} className="flex flex-col gap-3">
-            <p className="text-xs text-text-muted">이메일을 입력하면 인증코드를 보내드려요.</p>
-            <input
-              type="email"
-              placeholder="이메일"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted"
-            />
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <button type="submit" disabled={loading} className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50">
-              {loading ? "전송 중..." : "인증코드 받기"}
-            </button>
-          </form>
-        )}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* 휴대폰 번호 */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-text-primary">휴대폰 번호</label>
+              {otpVerified && <span className="text-xs text-green-500 font-semibold">✓ 인증완료</span>}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                placeholder="010XXXXXXXX"
+                value={phone}
+                onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 11)); setOtpSent(false); setOtpVerified(false); setOtp(""); setError(""); }}
+                disabled={otpVerified}
+                className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted disabled:bg-gray-50"
+              />
+              <button type="button" onClick={handleSendOtp} disabled={loading || phone.length < 10 || otpVerified} className="w-24 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
+                {otpSent && !otpVerified ? "재전송" : "인증번호 받기"}
+              </button>
+            </div>
+          </div>
 
-        {step === "otp" && (
-          <form onSubmit={handleVerifyOtp} className="flex flex-col gap-3">
-            <p className="text-xs text-text-muted">
-              <span className="font-semibold text-primary-400">{email}</span>로 전송된 6자리 코드를 입력해주세요.
-            </p>
-            <input
-              type="text"
-              placeholder="인증코드 6자리"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              required
-              maxLength={6}
-              className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted tracking-widest text-center text-lg font-semibold"
-            />
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <button type="submit" disabled={loading || otp.length < 6} className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50">
-              {loading ? "확인 중..." : "인증하기"}
-            </button>
-            <button type="button" onClick={() => { setStep("email"); setOtp(""); setError(""); }} className="text-xs text-text-muted hover:text-primary-400 transition-colors text-center">
-              이메일 다시 입력
-            </button>
-          </form>
-        )}
-
-        {step === "profile" && (
-          <form onSubmit={handleSaveProfile} className="flex flex-col gap-3">
-            <p className="text-xs text-text-muted">닉네임과 비밀번호를 설정해주세요.</p>
+          {/* 인증번호 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-text-primary">인증번호</label>
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="닉네임"
-                value={nickname}
-                onChange={(e) => { setNickname(e.target.value); setNicknameStatus("idle"); }}
-                required
+                placeholder="6자리 입력"
+                value={otp}
+                onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+                maxLength={6}
+                disabled={!otpSent || otpVerified}
+                className="flex-1 px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted tracking-widest text-center font-semibold disabled:bg-gray-50"
+              />
+              <button type="button" onClick={handleVerifyOtp} disabled={loading || otp.length < 6 || otpVerified} className="w-24 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
+                {loading ? "확인 중..." : "확인"}
+              </button>
+            </div>
+          </div>
+
+          {/* 아이디 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-text-primary">아이디</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="영문, 숫자, _ (3~20자)"
+                value={username}
+                onChange={(e) => { setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, "")); setUsernameStatus("idle"); }}
                 className={`flex-1 px-4 py-3 text-sm border rounded-xl focus:outline-none text-text-primary placeholder:text-text-muted transition-colors ${
-                  nicknameStatus === "ok" ? "border-green-400" :
-                  nicknameStatus === "taken" ? "border-red-400" :
+                  usernameStatus === "ok" ? "border-green-400" :
+                  usernameStatus === "taken" ? "border-red-400" :
                   "border-gray-200 focus:border-primary-400"
                 }`}
               />
-              <button type="button" onClick={handleCheckNickname} disabled={!nickname.trim() || nicknameStatus === "checking"} className="px-3 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
+              <button type="button" onClick={async () => {
+                if (!username.trim()) return;
+                setUsernameStatus("checking");
+                const taken = await checkNickname(username.trim());
+                setUsernameStatus(taken ? "taken" : "ok");
+              }} disabled={!username.trim() || usernameStatus === "checking"} className="w-24 flex-shrink-0 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-text-secondary rounded-xl disabled:opacity-40 whitespace-nowrap">
                 중복확인
               </button>
             </div>
-            {nicknameStatus === "ok" && <p className="text-xs text-green-500 -mt-1">사용 가능한 닉네임이에요.</p>}
-            {nicknameStatus === "taken" && <p className="text-xs text-red-500 -mt-1">이미 사용 중인 닉네임이에요.</p>}
+            {usernameStatus === "ok" && <p className="text-xs text-green-500">사용 가능한 아이디예요.</p>}
+            {usernameStatus === "taken" && <p className="text-xs text-red-500">이미 사용 중인 아이디예요.</p>}
+          </div>
+
+          {/* 비밀번호 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-text-primary">비밀번호</label>
             <input
               type="password"
-              placeholder="비밀번호 (6자 이상)"
+              placeholder="영문+숫자 6자 이상"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={(e) => { setPassword(e.target.value); setError(""); }}
               className="w-full px-4 py-3 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-primary-400 text-text-primary placeholder:text-text-muted"
             />
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <button type="submit" disabled={loading} className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 mt-1">
-              {loading ? "저장 중..." : "가입 완료"}
-            </button>
-          </form>
-        )}
+          </div>
+
+          {/* 비밀번호 확인 */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-text-primary">비밀번호 확인</label>
+            <input
+              type="password"
+              placeholder="비밀번호 재입력"
+              value={passwordConfirm}
+              onChange={(e) => { setPasswordConfirm(e.target.value); setError(""); }}
+              className={`w-full px-4 py-3 text-sm border rounded-xl focus:outline-none text-text-primary placeholder:text-text-muted transition-colors ${
+                passwordConfirm && password !== passwordConfirm ? "border-red-400" :
+                passwordConfirm && password === passwordConfirm ? "border-green-400" :
+                "border-gray-200 focus:border-primary-400"
+              }`}
+            />
+            {passwordConfirm && password !== passwordConfirm && <p className="text-xs text-red-500">비밀번호가 일치하지 않아요.</p>}
+            {passwordConfirm && password === passwordConfirm && <p className="text-xs text-green-500">비밀번호가 일치해요.</p>}
+          </div>
+
+          {error && <p className="text-xs text-red-500">{error}</p>}
+
+          <button type="submit" disabled={loading} className="w-full py-3 bg-primary-400 hover:bg-primary-500 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50">
+            {loading ? "처리 중..." : "가입 완료"}
+          </button>
+        </form>
 
         <button onClick={() => { onClose(); onLogin(); }} className="text-xs text-text-muted hover:text-primary-400 transition-colors text-center">
           이미 계정이 있어요 → 로그인

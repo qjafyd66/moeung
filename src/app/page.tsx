@@ -10,13 +10,17 @@ import LoginModal from "@/components/LoginModal";
 import SignupModal from "@/components/SignupModal";
 import NicknameSetupModal from "@/components/NicknameSetupModal";
 import MyPageModal from "@/components/MyPageModal";
+import LegalModal from "@/components/LegalModal";
+import PhoneSetupModal from "@/components/PhoneSetupModal";
 
 export default function Home() {
   const { events, clicks, categories, recordClick, recordView } = useEvents();
-  const { user, profile, needsNickname } = useAuth();
+  const { user, profile, needsNickname, needsPhone } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showMyPage, setShowMyPage] = useState(false);
+  const [legalModal, setLegalModal] = useState<"terms" | "privacy" | "location" | "marketing" | null>(null);
+  const [toast, setToast] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("deadline");
@@ -113,7 +117,7 @@ export default function Home() {
                 onClick={() => setShowMyPage(true)}
                 className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors"
               >
-                {profile?.nickname ?? "내 정보"}
+                {profile?.nickname ? `${profile.nickname}님` : "내 정보"}
               </button>
             ) : (
               <button
@@ -325,12 +329,32 @@ export default function Home() {
       )}
 
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onSignUp={() => setShowSignup(true)} />}
-      {showSignup && <SignupModal onClose={() => setShowSignup(false)} onLogin={() => setShowLogin(true)} />}
+      {showSignup && <SignupModal onClose={() => setShowSignup(false)} onLogin={() => setShowLogin(true)} onSuccess={() => { setToast("가입을 완료하였습니다."); setTimeout(() => setToast(""), 3000); }} />}
       {showMyPage && <MyPageModal onClose={() => setShowMyPage(false)} />}
-      {needsNickname && !showMyPage && <NicknameSetupModal />}
+      {needsNickname && !showMyPage && !showSignup && <NicknameSetupModal />}
+      {needsPhone && !showMyPage && <PhoneSetupModal />}
+      {legalModal && <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-lg">
+          {toast}
+        </div>
+      )}
 
-      <footer className="text-center py-8 text-xs text-text-muted">
-        © 2026 모응. 내 다음 차를 먼저 만나다.
+      <footer className="border-t border-gray-100 mt-8 py-8 px-4">
+        <div className="max-w-3xl mx-auto flex flex-col gap-4">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <button onClick={() => setLegalModal("terms")} className="text-xs font-semibold text-text-secondary hover:text-primary-400 transition-colors">이용약관</button>
+            <button onClick={() => setLegalModal("privacy")} className="text-xs font-semibold text-text-secondary hover:text-primary-400 transition-colors">개인정보처리방침</button>
+            <button onClick={() => setLegalModal("location")} className="text-xs text-text-muted hover:text-primary-400 transition-colors">위치기반서비스 이용약관</button>
+            <button className="text-xs text-text-muted hover:text-primary-400 transition-colors">공지사항</button>
+            <button className="text-xs text-text-muted hover:text-primary-400 transition-colors">고객센터</button>
+          </div>
+          <div className="flex flex-col gap-1 text-[11px] text-text-muted leading-relaxed">
+            <p className="font-semibold text-text-secondary">모응</p>
+            <p>고객센터 문의: support@moeung.kr</p>
+          </div>
+          <p className="text-[11px] text-text-muted">© 2026 모응. All rights reserved.</p>
+        </div>
       </footer>
     </div>
   );
