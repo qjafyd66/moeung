@@ -131,7 +131,15 @@ export default function Home() {
               onClick={() => {
                 setToast("앱 출시를 준비 중이에요 🙏");
                 setTimeout(() => setToast(""), 3000);
-                supabase.from("app_download_clicks").insert({}).then(() => {}, () => {});
+                let deviceId = localStorage.getItem("moeung_device_id");
+                if (!deviceId) {
+                  deviceId = crypto.randomUUID();
+                  localStorage.setItem("moeung_device_id", deviceId);
+                }
+                supabase.from("app_download_clicks").insert({
+                  device_id: deviceId,
+                  user_id: user?.id ?? null,
+                }).then(() => {}, () => {});
               }}
               className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-400 active:opacity-70 text-white hover:bg-primary-500 transition-colors"
             >
