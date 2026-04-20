@@ -129,11 +129,11 @@ export default function Home() {
             )}
             <button
               onClick={() => {
-                supabase.from("app_download_clicks").insert({});
                 setToast("앱 출시를 준비 중이에요 🙏");
                 setTimeout(() => setToast(""), 3000);
+                supabase.from("app_download_clicks").insert({}).then(() => {}, () => {});
               }}
-              className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-400 text-white hover:bg-primary-500 transition-colors"
+              className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-400 active:opacity-70 text-white hover:bg-primary-500 transition-colors"
             >
               앱 다운로드
             </button>
