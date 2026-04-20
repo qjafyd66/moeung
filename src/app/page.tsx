@@ -165,7 +165,32 @@ export default function Home() {
                 &ldquo;{searchQuery}&rdquo; 검색 결과 {filtered.length}개
               </p>
               {filtered.length === 0 ? (
-                <div className="text-center py-16 text-text-muted text-sm">검색 결과가 없습니다.</div>
+                <div className="text-center py-12">
+                  <p className="text-sm font-semibold text-text-primary mb-1">&ldquo;{searchQuery}&rdquo; 검색 결과가 없어요</p>
+                  <p className="text-xs text-text-muted mb-6">다른 키워드로 검색하거나 인기 브랜드를 확인해보세요</p>
+                  {popularBrands.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-text-secondary mb-2">이런 건 어때요?</p>
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        {popularBrands.slice(0, 5).map((brand) => (
+                          <button
+                            key={brand}
+                            onClick={() => setSearchQuery(brand)}
+                            className="text-sm font-semibold px-4 py-2 rounded-full bg-white border border-primary-200 text-primary-500 hover:bg-primary-50 transition-colors"
+                          >
+                            {brand}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={goHome}
+                    className="mt-6 text-xs text-text-muted hover:text-primary-400 transition-colors underline"
+                  >
+                    홈으로 돌아가기
+                  </button>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   {filtered.map((event) => (
