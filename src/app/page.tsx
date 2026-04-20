@@ -207,7 +207,7 @@ export default function Home() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   {filtered.map((event) => (
                     <EventCard key={event.id} event={event} onClickApply={() => recordClick(event.id)} onClickView={() => recordView(event.id)} />
                   ))}
@@ -363,7 +363,7 @@ export default function Home() {
 
           {/* 이벤트 그리드 */}
           <main className="max-w-3xl mx-auto px-4 py-4">
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
               {filtered.map((event) => (
                 <EventCard
                   key={event.id}
