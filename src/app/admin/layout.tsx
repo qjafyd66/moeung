@@ -2,7 +2,6 @@
 
 import { useState, useEffect, ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 const ADMIN_PASSWORD = "moeung2026";
 
@@ -10,7 +9,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [isAuth, setIsAuth] = useState(false);
   const [password, setPassword] = useState("");
   const [pwError, setPwError] = useState(false);
-  const pathname = usePathname();
 
   useEffect(() => {
     if (sessionStorage.getItem("isAdmin") === "true") setIsAuth(true);
@@ -66,40 +64,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const navItems = [
-    { href: "/admin", label: "이벤트 관리" },
-    { href: "/admin/crawl", label: "크롤링 대기" },
-  ];
-
   return (
     <div className="min-h-screen bg-bg-main">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-primary-400 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-extrabold text-xs leading-none">M</span>
-              </div>
-              <span className="text-sm font-extrabold text-text-primary">모응 관리자</span>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-primary-400 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-extrabold text-xs leading-none">M</span>
             </div>
-            <nav className="flex gap-1">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                      isActive
-                        ? "bg-primary-100 text-primary-600"
-                        : "text-text-secondary hover:bg-gray-100"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <span className="text-sm font-extrabold text-text-primary">모응 관리자</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/" className="text-xs text-text-muted hover:text-primary-400 transition-colors">
