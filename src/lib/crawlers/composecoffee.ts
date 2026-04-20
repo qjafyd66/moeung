@@ -5,7 +5,12 @@ const EVENT_URL = `${BASE_URL}/event`;
 
 export async function crawlComposeCoffee() {
   const res = await fetch(EVENT_URL, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1)" },
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "ko-KR,ko;q=0.9",
+      "Referer": "https://www.google.com/",
+    },
   });
   if (!res.ok) throw new Error(`Compose Coffee fetch failed: ${res.status}`);
 

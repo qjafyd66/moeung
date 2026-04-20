@@ -16,7 +16,12 @@ function parseKoreanDate(text: string): { startDate: string; deadline: string } 
 
 export async function crawlEdiya() {
   const res = await fetch(EVENT_URL, {
-    headers: { "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1)" },
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "ko-KR,ko;q=0.9",
+      "Referer": "https://www.google.com/",
+    },
   });
   if (!res.ok) throw new Error(`Ediya fetch failed: ${res.status}`);
 
@@ -25,7 +30,7 @@ export async function crawlEdiya() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  $("ul.board_e_list > li").each((_, el) => {
+  $("ul.board_e > li").each((_, el) => {
     const status = $(el).find(".board_e_state span").text().trim();
     if (status === "종료") return;
 
