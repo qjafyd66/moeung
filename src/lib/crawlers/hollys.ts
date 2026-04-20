@@ -41,7 +41,7 @@ export async function crawlHollys() {
     results.push({
       brand: "할리스",
       brand_color: "#7B3F2B",
-      category: "life",
+      category: "coffee",
       title,
       description: dateText.replace("공지 기간", "").trim(),
       image_url: imageUrl,

@@ -28,7 +28,7 @@ export async function crawlComposeCoffee() {
     results.push({
       brand: "컴포즈커피",
       brand_color: "#FFD700",
-      category: "life",
+      category: "coffee",
       title,
       description: `게시일: ${regdate}`,
       image_url: imgSrc.startsWith("http") ? imgSrc : `${BASE_URL}${imgSrc}`,

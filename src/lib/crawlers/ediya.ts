@@ -52,7 +52,7 @@ export async function crawlEdiya() {
     results.push({
       brand: "이디야커피",
       brand_color: "#003366",
-      category: "life",
+      category: "coffee",
       title,
       description: dateText.replace("기간 :", "").trim(),
       image_url: imageUrl,
