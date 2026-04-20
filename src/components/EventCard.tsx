@@ -36,7 +36,7 @@ const dDayStyles: Record<string, string> = {
   warning:  "bg-warning text-white font-bold",
   normal:   "bg-primary-100 text-primary-600 font-semibold",
   expired:  "bg-gray-200 text-gray-500 font-semibold",
-  tbd:      "bg-gray-100 text-gray-500 font-semibold",
+  tbd:      "bg-gray-100 text-gray-500 font-semibold text-[10px]",
   upcoming: "bg-primary-50 text-primary-500 font-semibold",
 };
 
@@ -116,8 +116,8 @@ export default function EventCard({ event, onClickApply, onClickView }: { event:
 
         {event.participationMethod && (
           <div className="flex items-center gap-1">
-            <span className="text-xs text-text-muted">참여방법</span>
-            <span className="text-xs font-medium text-text-secondary bg-gray-50 px-1.5 py-0.5 rounded-full">
+            <span className="text-[10px] text-text-muted">참여방법</span>
+            <span className="text-[10px] font-medium text-text-secondary bg-gray-50 px-1.5 py-0.5 rounded-full">
               {event.participationMethod}
             </span>
           </div>
@@ -130,7 +130,7 @@ export default function EventCard({ event, onClickApply, onClickView }: { event:
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => { e.stopPropagation(); onClickApply?.(); }}
-            className="text-xs font-semibold bg-primary-400 hover:bg-primary-500 text-white px-3 py-2 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
+            className="text-[11px] font-semibold bg-primary-400 hover:bg-primary-500 text-white px-3 py-1 rounded-lg transition-colors duration-150 flex items-center gap-1 shrink-0"
           >
             신청하기 →
           </a>
