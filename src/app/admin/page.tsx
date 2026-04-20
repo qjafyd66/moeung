@@ -7,27 +7,10 @@ import type { CategoryConfig } from "@/context/EventsContext";
 import { Event, EventCategory, EventType } from "@/data/events";
 import { BRANDS, getBrandsByCategory } from "@/data/brands";
 
-const ADMIN_PASSWORD = "moeung2026";
 const CUSTOM_BRAND = "__custom__";
 
 type FormData = Omit<Event, "id">;
-type RightTab = "active" | "expired" | "categories" | "crawl";
-
-type CrawlItem = {
-  id: number;
-  brand: string;
-  brand_color: string;
-  category: string;
-  title: string;
-  description: string;
-  image_url: string;
-  link: string;
-  source_url: string;
-  start_date: string;
-  deadline: string;
-  event_type: string;
-  crawled_at: string;
-};
+type RightTab = "active" | "expired" | "categories";
 
 const emptyForm: FormData = {
   category: "car",
@@ -119,9 +102,6 @@ function EventRow({
 }
 
 export default function AdminPage() {
-  const [isAuth, setIsAuth] = useState(false);
-  const [password, setPassword] = useState("");
-  const [pwError, setPwError] = useState(false);
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [isCustomBrand, setIsCustomBrand] = useState(false);
   const [isCustomEventType, setIsCustomEventType] = useState(false);
@@ -133,55 +113,10 @@ export default function AdminPage() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [rightTab, setRightTab] = useState<RightTab>("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const [crawlQueue, setCrawlQueue] = useState<CrawlItem[]>([]);
-  const [crawlLoading, setCrawlLoading] = useState(false);
-  const [crawlRunning, setCrawlRunning] = useState(false);
-  const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory, reorderCategories, refreshEvents } = useEvents();
+  const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory, reorderCategories } = useEvents();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  useEffect(() => {
-    if (sessionStorage.getItem("isAdmin") === "true") setIsAuth(true);
-  }, []);
-
-  const fetchCrawlQueue = async () => {
-    setCrawlLoading(true);
-    const res = await fetch("/api/crawl/queue");
-    const data = await res.json();
-    setCrawlQueue(Array.isArray(data) ? data : []);
-    setCrawlLoading(false);
-  };
-
-  const handleRunCrawler = async () => {
-    setCrawlRunning(true);
-    await fetch("/api/crawl/run", { method: "POST" });
-    await fetchCrawlQueue();
-    setCrawlRunning(false);
-  };
-
-  const handleApprove = async (id: number) => {
-    await fetch("/api/crawl/approve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setCrawlQueue((prev) => prev.filter((item) => item.id !== id));
-    await refreshEvents();
-  };
-
-  const handleReject = async (id: number) => {
-    await fetch("/api/crawl/reject", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setCrawlQueue((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  useEffect(() => {
-    if (rightTab === "crawl") fetchCrawlQueue();
-  }, [rightTab]);
 
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
@@ -306,75 +241,15 @@ export default function AdminPage() {
     active: activeEvents.length,
     expired: expiredEvents.length,
     categories: categories.length,
-    crawl: crawlQueue.length,
   };
 
   const tabs: { id: RightTab; label: string }[] = [
     { id: "active", label: "등록된 이벤트" },
     { id: "expired", label: "종료된 이벤트" },
     { id: "categories", label: "카테고리" },
-    { id: "crawl", label: "크롤링 대기" },
   ];
 
-  if (!isAuth) {
-    return (
-      <div className="min-h-screen bg-bg-main flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-md border border-primary-100 p-8 w-full max-w-sm">
-          <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-8 h-8 rounded-full bg-primary-400 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-extrabold text-sm leading-none">M</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-extrabold text-text-primary">모응 관리자</h1>
-              <p className="text-[11px] text-text-secondary mt-0.5">관리자만 접근 가능합니다</p>
-            </div>
-          </div>
-          <label className={labelCls}>비밀번호</label>
-          <input
-            type="password"
-            placeholder="비밀번호 입력"
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setPwError(false); }}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-            className={inputCls + (pwError ? " !border-danger" : "")}
-          />
-          {pwError && <p className="text-xs text-danger mt-1.5">비밀번호가 올바르지 않습니다.</p>}
-          <button
-            onClick={handleLogin}
-            className="w-full mt-4 bg-primary-400 hover:bg-primary-500 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm"
-          >
-            로그인
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-bg-main">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-extrabold text-text-primary">모응 관리자</h1>
-            <span className="text-xs bg-primary-100 text-primary-600 font-semibold px-2.5 py-1 rounded-full ml-1">
-              총 {events.length}개
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-xs text-text-secondary hover:text-primary-600 transition-colors">
-              ← 메인으로
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="text-xs text-text-secondary border border-gray-200 px-3 py-1.5 rounded-lg hover:border-danger hover:text-danger transition-colors"
-            >
-              로그아웃
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row gap-6">
           {/* ── 왼쪽: 이벤트 등록/수정 폼 ── */}
           <div className="md:w-2/5">
@@ -769,97 +644,10 @@ export default function AdminPage() {
                   </div>
                 )}
 
-                {/* 크롤링 대기 탭 */}
-                {rightTab === "crawl" && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between px-1">
-                      <p className="text-xs text-text-muted">이디야·컴포즈·할리스 이벤트를 자동 수집합니다.</p>
-                      <button
-                        onClick={handleRunCrawler}
-                        disabled={crawlRunning}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary-400 hover:bg-primary-500 text-white disabled:opacity-50 transition-colors whitespace-nowrap"
-                      >
-                        {crawlRunning ? "수집 중..." : "지금 수집"}
-                      </button>
-                    </div>
-
-                    {crawlLoading ? (
-                      <p className="text-xs text-text-muted text-center py-8">불러오는 중...</p>
-                    ) : crawlQueue.length === 0 ? (
-                      <div className="text-center py-10">
-                        <p className="text-sm text-text-muted">검토 대기 중인 이벤트가 없습니다.</p>
-                        <p className="text-xs text-text-muted mt-1">"지금 수집" 버튼을 눌러 크롤링을 시작하세요.</p>
-                      </div>
-                    ) : (
-                      crawlQueue.map((item) => (
-                        <div key={item.id} className="p-3 rounded-xl border border-gray-100 hover:border-primary-100 transition-colors">
-                          <div className="flex gap-3">
-                            {item.image_url && (
-                              <img
-                                src={item.image_url}
-                                alt={item.title}
-                                className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-gray-100"
-                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                                <span
-                                  className="text-[11px] font-semibold px-2 py-0.5 rounded-full text-white"
-                                  style={{ backgroundColor: item.brand_color }}
-                                >
-                                  {item.brand}
-                                </span>
-                                <span className="text-[11px] text-text-muted bg-gray-50 px-2 py-0.5 rounded-full">
-                                  {item.event_type}
-                                </span>
-                              </div>
-                              <p className="text-sm font-semibold text-text-primary leading-snug line-clamp-2">{item.title}</p>
-                              {item.description && (
-                                <p className="text-xs text-text-muted mt-0.5 line-clamp-1">{item.description}</p>
-                              )}
-                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                {(item.start_date || item.deadline) && (
-                                  <span className="text-[11px] text-text-muted">
-                                    {item.start_date && `${item.start_date} ~ `}{item.deadline || "미정"}
-                                  </span>
-                                )}
-                                <a
-                                  href={item.source_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[11px] text-primary-500 underline"
-                                >
-                                  원문 보기
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-2.5">
-                            <button
-                              onClick={() => handleApprove(item.id)}
-                              className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-primary-400 hover:bg-primary-500 text-white transition-colors"
-                            >
-                              승인 → 등록
-                            </button>
-                            <button
-                              onClick={() => handleReject(item.id)}
-                              className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors"
-                            >
-                              거절
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
-      </main>
-    </div>
   );
 }
 
