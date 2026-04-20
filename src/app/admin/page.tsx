@@ -136,7 +136,7 @@ export default function AdminPage() {
   const [crawlQueue, setCrawlQueue] = useState<CrawlItem[]>([]);
   const [crawlLoading, setCrawlLoading] = useState(false);
   const [crawlRunning, setCrawlRunning] = useState(false);
-  const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory, reorderCategories } = useEvents();
+  const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory, reorderCategories, refreshEvents } = useEvents();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -167,6 +167,7 @@ export default function AdminPage() {
       body: JSON.stringify({ id }),
     });
     setCrawlQueue((prev) => prev.filter((item) => item.id !== id));
+    await refreshEvents();
   };
 
   const handleReject = async (id: number) => {

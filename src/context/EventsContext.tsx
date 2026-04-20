@@ -66,6 +66,7 @@ type EventsContextType = {
   updateCategory: (cat: CategoryConfig) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   reorderCategories: (reordered: CategoryConfig[]) => Promise<void>;
+  refreshEvents: () => Promise<void>;
 };
 
 const EventsContext = createContext<EventsContextType | null>(null);
@@ -77,35 +78,34 @@ export function EventsProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<CategoryConfig[]>(defaultCategories);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadAll() {
-      setLoading(true);
+  async function loadAll() {
+    setLoading(true);
 
-      const [{ data: eventsData }, { data: categoriesData }] = await Promise.all([
-        supabase.from("events").select("*").order("id", { ascending: true }),
-        supabase.from("categories").select("*").order("sort_order", { ascending: true }),
-      ]);
+    const [{ data: eventsData }, { data: categoriesData }] = await Promise.all([
+      supabase.from("events").select("*").order("id", { ascending: true }),
+      supabase.from("categories").select("*").order("sort_order", { ascending: true }),
+    ]);
 
-      if (eventsData) {
-        setEvents(eventsData.map(rowToEvent));
-        const clickMap: Record<number, number> = {};
-        const viewMap: Record<number, number> = {};
-        eventsData.forEach((r) => {
-          clickMap[r.id] = r.click_count ?? 0;
-          viewMap[r.id] = r.view_count ?? 0;
-        });
-        setClicks(clickMap);
-        setViews(viewMap);
-      }
-
-      if (categoriesData && categoriesData.length > 0) {
-        setCategories(categoriesData.map(rowToCategory));
-      }
-
-      setLoading(false);
+    if (eventsData) {
+      setEvents(eventsData.map(rowToEvent));
+      const clickMap: Record<number, number> = {};
+      const viewMap: Record<number, number> = {};
+      eventsData.forEach((r) => {
+        clickMap[r.id] = r.click_count ?? 0;
+        viewMap[r.id] = r.view_count ?? 0;
+      });
+      setClicks(clickMap);
+      setViews(viewMap);
     }
-    loadAll();
-  }, []);
+
+    if (categoriesData && categoriesData.length > 0) {
+      setCategories(categoriesData.map(rowToCategory));
+    }
+
+    setLoading(false);
+  }
+
+  useEffect(() => { loadAll(); }, []);
 
   const addEvent = async (event: Omit<Event, "id">) => {
     const { data } = await supabase.from("events").insert(eventToRow(event)).select().single();
@@ -170,6 +170,7 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       events, clicks, views, categories, loading,
       addEvent, updateEvent, deleteEvent, recordClick, recordView,
       addCategory, updateCategory, deleteCategory, reorderCategories,
+      refreshEvents: loadAll,
     }}>
       {children}
     </EventsContext.Provider>
