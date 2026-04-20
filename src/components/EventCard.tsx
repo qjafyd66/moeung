@@ -26,8 +26,8 @@ function getDDay(deadline: string, startDate: string): {
   const diff = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   if (diff < 0) return { label: "마감", level: "expired" };
   if (diff === 0) return { label: "D-Day", level: "danger" };
-  if (diff === 1) return { label: "D-1", level: "danger" };
-  if (diff <= 3) return { label: `D-${diff}`, level: "warning" };
+  if (diff <= 3) return { label: `D-${diff}`, level: "danger" };
+  if (diff <= 7) return { label: `D-${diff}`, level: "warning" };
   return { label: `D-${diff}`, level: "normal" };
 }
 

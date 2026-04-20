@@ -122,7 +122,7 @@ export default function Home() {
             ) : (
               <button
                 onClick={() => setShowLogin(true)}
-                className="text-sm font-semibold px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-700 transition-colors"
+                className="text-sm font-semibold px-4 py-2 rounded-xl bg-primary-400 text-white hover:bg-primary-500 transition-colors"
               >
                 로그인
               </button>
@@ -261,16 +261,30 @@ export default function Home() {
               {/* 카테고리 카드 */}
               <h2 className="text-sm font-bold text-text-primary mb-3">카테고리</h2>
               <div className="grid grid-cols-3 gap-3">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className="bg-white rounded-2xl p-5 flex flex-col gap-2 border border-gray-100 hover:border-primary-300 hover:shadow-md transition-all duration-200 text-left shadow-sm"
-                  >
-                    <div className="text-sm font-bold text-text-primary">{cat.label}</div>
-                    <div className="text-[11px] text-text-muted">{cat.desc}</div>
-                  </button>
-                ))}
+                {categories.map((cat) => {
+                  const hasEvents = events.some(
+                    (e) => e.category === cat.id && (!e.deadline || new Date(e.deadline) >= today)
+                  );
+                  return hasEvents ? (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      className="bg-white rounded-2xl p-5 flex flex-col gap-2 border border-gray-100 hover:border-primary-300 hover:shadow-md transition-all duration-200 text-left shadow-sm"
+                    >
+                      <div className="text-sm font-bold text-text-primary">{cat.label}</div>
+                      <div className="text-[11px] text-text-muted">{cat.desc}</div>
+                    </button>
+                  ) : (
+                    <div
+                      key={cat.id}
+                      className="relative bg-white rounded-2xl p-5 flex flex-col gap-2 border border-gray-100 text-left shadow-sm opacity-50 cursor-not-allowed"
+                    >
+                      <span className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400">준비중</span>
+                      <div className="text-sm font-bold text-text-primary">{cat.label}</div>
+                      <div className="text-[11px] text-text-muted">{cat.desc}</div>
+                    </div>
+                  );
+                })}
               </div>
             </>
           )}
