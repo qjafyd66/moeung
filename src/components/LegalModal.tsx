@@ -1,7 +1,7 @@
 "use client";
 
 type Props = {
-  type: "terms" | "privacy" | "location" | "marketing";
+  type: "terms" | "privacy" | "location" | "marketing" | "notice" | "support";
   onClose: () => void;
 };
 
@@ -93,6 +93,43 @@ const LOCATION = `제1조 (목적)
 부칙
 이 약관은 2026년 4월 19일부터 시행합니다.`;
 
+const NOTICE = `[공지] 모응 서비스 오픈 안내
+
+안녕하세요, 모응팀입니다.
+
+모응은 자동차 시승, 가전 체험, 라이프스타일 응모 등 다양한 이벤트 정보를 한곳에서 확인할 수 있는 서비스입니다.
+
+앞으로 더 많은 브랜드와 이벤트를 빠르게 추가해 나갈 예정이며, 이용자분들의 소중한 의견을 반영해 서비스를 발전시키겠습니다.
+
+문의 및 제안은 고객센터(support@moeung.kr)로 남겨주세요.
+
+감사합니다.
+모응팀 드림
+
+시행일: 2026년 4월`;
+
+const SUPPORT = `고객센터 안내
+
+· 이메일: support@moeung.kr
+· 운영 시간: 평일 10:00 ~ 18:00 (주말·공휴일 휴무)
+
+문의 유형별 안내
+
+[이벤트 정보 오류]
+특정 이벤트의 정보가 잘못되었거나 마감된 이벤트가 표시되는 경우 이메일로 제보해 주세요. 신속하게 수정하겠습니다.
+
+[이벤트 등록 제안]
+등록을 원하시는 이벤트가 있으시면 이벤트 이름과 링크를 함께 보내주세요.
+
+[서비스 오류 신고]
+서비스 이용 중 오류가 발생한 경우 오류 내용과 이용 환경(기기, 브라우저 등)을 함께 보내주시면 빠르게 처리하겠습니다.
+
+[기타 문의]
+서비스 관련 기타 문의 사항은 이메일로 연락 주시면 순차적으로 답변드리겠습니다.
+
+감사합니다.
+모응팀 드림`;
+
 const MARKETING = `수신 동의 항목
 · 이메일, SMS, 앱 푸시 알림을 통한 이벤트 및 혜택 정보
 
@@ -110,8 +147,8 @@ const MARKETING = `수신 동의 항목
 시행일: 2026년 4월 19일`;
 
 export default function LegalModal({ type, onClose }: Props) {
-  const titles = { terms: "이용약관", privacy: "개인정보처리방침", location: "위치기반서비스 이용약관", marketing: "마케팅 정보 수신 동의" };
-  const contents = { terms: TERMS, privacy: PRIVACY, location: LOCATION, marketing: MARKETING };
+  const titles = { terms: "이용약관", privacy: "개인정보처리방침", location: "위치기반서비스 이용약관", marketing: "마케팅 정보 수신 동의", notice: "공지사항", support: "고객센터" };
+  const contents = { terms: TERMS, privacy: PRIVACY, location: LOCATION, marketing: MARKETING, notice: NOTICE, support: SUPPORT };
   const title = titles[type];
   const content = contents[type];
 
