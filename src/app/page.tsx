@@ -346,8 +346,8 @@ export default function Home() {
             <button onClick={() => setLegalModal("terms")} className="text-xs font-semibold text-text-secondary hover:text-primary-400 transition-colors">이용약관</button>
             <button onClick={() => setLegalModal("privacy")} className="text-xs font-semibold text-text-secondary hover:text-primary-400 transition-colors">개인정보처리방침</button>
             <button onClick={() => setLegalModal("location")} className="text-xs text-text-muted hover:text-primary-400 transition-colors">위치기반서비스 이용약관</button>
-            <button className="text-xs text-text-muted hover:text-primary-400 transition-colors">공지사항</button>
-            <button className="text-xs text-text-muted hover:text-primary-400 transition-colors">고객센터</button>
+            <button onClick={() => setToast("공지사항을 준비 중이에요.")} className="text-xs text-text-muted hover:text-primary-400 transition-colors">공지사항</button>
+            <a href="mailto:support@moeung.kr" className="text-xs text-text-muted hover:text-primary-400 transition-colors">고객센터</a>
           </div>
           <div className="flex flex-col gap-1 text-[11px] text-text-muted leading-relaxed">
             <p className="font-semibold text-text-secondary">모응</p>
