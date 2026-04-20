@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { isParticipatoryEvent } from "./filter";
 
 const BASE_URL = "https://composecoffee.co.kr";
 const EVENT_URL = `${BASE_URL}/event`;
@@ -24,6 +25,7 @@ export async function crawlComposeCoffee() {
     const regdate = $(el).find(".regdate").text().trim();
 
     if (!title || !link) return;
+    if (!isParticipatoryEvent(title)) return;
 
     results.push({
       brand: "컴포즈커피",

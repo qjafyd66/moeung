@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { isParticipatoryEvent } from "./filter";
 
 const BASE_URL = "https://www.ediya.com";
 const EVENT_URL = `${BASE_URL}/contents/event.html?tb_name=event`;
@@ -48,6 +49,7 @@ export async function crawlEdiya() {
     const { startDate, deadline } = parseKoreanDate(dateText);
 
     if (deadline && new Date(deadline) < today) return;
+    if (!isParticipatoryEvent(title)) return;
 
     results.push({
       brand: "이디야커피",

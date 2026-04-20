@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { isParticipatoryEvent } from "./filter";
 
 const BASE_URL = "https://www.hollys.co.kr";
 const EVENT_URL = `${BASE_URL}/news/event/list.do`;
@@ -37,6 +38,7 @@ export async function crawlHollys() {
 
     if (deadline && new Date(deadline) < today) return;
     if (!title) return;
+    if (!isParticipatoryEvent(title)) return;
 
     results.push({
       brand: "할리스",
