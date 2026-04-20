@@ -11,7 +11,22 @@ const ADMIN_PASSWORD = "moeung2026";
 const CUSTOM_BRAND = "__custom__";
 
 type FormData = Omit<Event, "id">;
-type RightTab = "active" | "expired" | "categories";
+type RightTab = "active" | "expired" | "categories" | "crawl";
+
+type CrawlItem = {
+  id: number;
+  brand: string;
+  brand_color: string;
+  category: string;
+  title: string;
+  description: string;
+  image_url: string;
+  link: string;
+  start_date: string;
+  deadline: string;
+  event_type: string;
+  crawled_at: string;
+};
 
 const emptyForm: FormData = {
   category: "car",
@@ -47,6 +62,7 @@ function getDDayBadge(deadline: string, startDate: string) {
   if (diff <= 3) return { label: `D-${diff}`, cls: "bg-warning text-white" };
   return { label: `D-${diff}`, cls: "bg-primary-100 text-primary-600" };
 }
+
 
 function EventRow({
   event,
@@ -116,6 +132,9 @@ export default function AdminPage() {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [rightTab, setRightTab] = useState<RightTab>("active");
   const [searchQuery, setSearchQuery] = useState("");
+  const [crawlQueue, setCrawlQueue] = useState<CrawlItem[]>([]);
+  const [crawlLoading, setCrawlLoading] = useState(false);
+  const [crawlRunning, setCrawlRunning] = useState(false);
   const { events, categories, addEvent, updateEvent, deleteEvent, addCategory, updateCategory, deleteCategory, reorderCategories } = useEvents();
 
   const today = new Date();
@@ -124,6 +143,43 @@ export default function AdminPage() {
   useEffect(() => {
     if (sessionStorage.getItem("isAdmin") === "true") setIsAuth(true);
   }, []);
+
+  const fetchCrawlQueue = async () => {
+    setCrawlLoading(true);
+    const res = await fetch("/api/crawl/queue");
+    const data = await res.json();
+    setCrawlQueue(Array.isArray(data) ? data : []);
+    setCrawlLoading(false);
+  };
+
+  const handleRunCrawler = async () => {
+    setCrawlRunning(true);
+    await fetch("/api/crawl/run", { method: "POST" });
+    await fetchCrawlQueue();
+    setCrawlRunning(false);
+  };
+
+  const handleApprove = async (id: number) => {
+    await fetch("/api/crawl/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setCrawlQueue((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleReject = async (id: number) => {
+    await fetch("/api/crawl/reject", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setCrawlQueue((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  useEffect(() => {
+    if (rightTab === "crawl") fetchCrawlQueue();
+  }, [rightTab]);
 
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
@@ -248,12 +304,14 @@ export default function AdminPage() {
     active: activeEvents.length,
     expired: expiredEvents.length,
     categories: categories.length,
+    crawl: crawlQueue.length,
   };
 
   const tabs: { id: RightTab; label: string }[] = [
     { id: "active", label: "등록된 이벤트" },
     { id: "expired", label: "종료된 이벤트" },
-    { id: "categories", label: "카테고리 관리" },
+    { id: "categories", label: "카테고리" },
+    { id: "crawl", label: "크롤링 대기" },
   ];
 
   if (!isAuth) {
@@ -543,6 +601,7 @@ export default function AdminPage() {
                     editingId={editingId}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+
                     categories={categories}
                     emptyMessage="진행 중인 이벤트가 없습니다."
                     inputCls={inputCls}
@@ -559,6 +618,7 @@ export default function AdminPage() {
                     editingId={editingId}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+
                     categories={categories}
                     emptyMessage="종료된 이벤트가 없습니다."
                     inputCls={inputCls}
@@ -703,6 +763,92 @@ export default function AdminPage() {
                       >
                         + 카테고리 추가
                       </button>
+                    )}
+                  </div>
+                )}
+
+                {/* 크롤링 대기 탭 */}
+                {rightTab === "crawl" && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between px-1">
+                      <p className="text-xs text-text-muted">이디야·컴포즈·할리스 이벤트를 자동 수집합니다.</p>
+                      <button
+                        onClick={handleRunCrawler}
+                        disabled={crawlRunning}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary-400 hover:bg-primary-500 text-white disabled:opacity-50 transition-colors whitespace-nowrap"
+                      >
+                        {crawlRunning ? "수집 중..." : "지금 수집"}
+                      </button>
+                    </div>
+
+                    {crawlLoading ? (
+                      <p className="text-xs text-text-muted text-center py-8">불러오는 중...</p>
+                    ) : crawlQueue.length === 0 ? (
+                      <div className="text-center py-10">
+                        <p className="text-sm text-text-muted">검토 대기 중인 이벤트가 없습니다.</p>
+                        <p className="text-xs text-text-muted mt-1">"지금 수집" 버튼을 눌러 크롤링을 시작하세요.</p>
+                      </div>
+                    ) : (
+                      crawlQueue.map((item) => (
+                        <div key={item.id} className="p-3 rounded-xl border border-gray-100 hover:border-primary-100 transition-colors">
+                          <div className="flex gap-3">
+                            {item.image_url && (
+                              <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="w-16 h-16 rounded-lg object-cover flex-shrink-0 bg-gray-100"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                <span
+                                  className="text-[11px] font-semibold px-2 py-0.5 rounded-full text-white"
+                                  style={{ backgroundColor: item.brand_color }}
+                                >
+                                  {item.brand}
+                                </span>
+                                <span className="text-[11px] text-text-muted bg-gray-50 px-2 py-0.5 rounded-full">
+                                  {item.event_type}
+                                </span>
+                              </div>
+                              <p className="text-sm font-semibold text-text-primary leading-snug line-clamp-2">{item.title}</p>
+                              {item.description && (
+                                <p className="text-xs text-text-muted mt-0.5 line-clamp-1">{item.description}</p>
+                              )}
+                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                {(item.start_date || item.deadline) && (
+                                  <span className="text-[11px] text-text-muted">
+                                    {item.start_date && `${item.start_date} ~ `}{item.deadline || "미정"}
+                                  </span>
+                                )}
+                                <a
+                                  href={item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] text-primary-500 underline"
+                                >
+                                  원문 보기
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-2.5">
+                            <button
+                              onClick={() => handleApprove(item.id)}
+                              className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-primary-400 hover:bg-primary-500 text-white transition-colors"
+                            >
+                              승인 → 등록
+                            </button>
+                            <button
+                              onClick={() => handleReject(item.id)}
+                              className="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition-colors"
+                            >
+                              거절
+                            </button>
+                          </div>
+                        </div>
+                      ))
                     )}
                   </div>
                 )}
