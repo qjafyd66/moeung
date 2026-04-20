@@ -45,9 +45,7 @@ export async function crawlHollys() {
       title,
       description: dateText.replace("공지 기간", "").trim(),
       image_url: imageUrl,
-      link: eventId
-        ? `${BASE_URL}/news/event/view.do?eventIdx=${eventId}`
-        : EVENT_URL,
+      link: EVENT_URL,
       start_date: startDate,
       deadline,
       participation_method: "홈페이지 참여",

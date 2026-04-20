@@ -22,6 +22,7 @@ type CrawlItem = {
   description: string;
   image_url: string;
   link: string;
+  source_url: string;
   start_date: string;
   deadline: string;
   event_type: string;
@@ -823,7 +824,7 @@ export default function AdminPage() {
                                   </span>
                                 )}
                                 <a
-                                  href={item.link}
+                                  href={item.source_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-[11px] text-primary-500 underline"

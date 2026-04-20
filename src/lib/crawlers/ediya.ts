@@ -36,9 +36,7 @@ export async function crawlEdiya() {
 
     if (!title) return;
 
-    const link = href.startsWith("http")
-      ? href
-      : `${BASE_URL}/contents/event.html${href}`;
+    const link = EVENT_URL;
     const imageUrl = imgSrc.startsWith("http")
       ? imgSrc
       : `${BASE_URL}/${imgSrc.replace(/^\//, "")}`;
