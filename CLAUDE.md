@@ -211,6 +211,11 @@ www.moeung.kr 에 즉시 반영
 - [ ] **모바일 앱**: React Native 또는 Flutter
 - [ ] **이벤트 상세 페이지**: 현재 카드 클릭 시 바로 외부 링크로 이동
 - [ ] **이벤트 데이터 확충**: 더 많은 브랜드/카테고리 이벤트 등록
+- [ ] **OG 이미지 추가**: 1200×630px 이미지 → `/public/og-image.png` 후 layout.tsx에 og:image 추가
+- [ ] **크롤링 시스템 개선**: 이디야·컴포즈·할리스 크롤러 추가 브랜드 확대 (추후 재개)
+- [ ] **날짜 표기 통일**: 시작일/마감일 연도 표기 일관성 맞추기
+- [ ] **신청 링크 없는 이벤트**: link 비어있을 때 신청하기 버튼 비활성화 처리
+- [ ] **상표 등록**: "모응" 상표 특허청 등록 (MAU 늘어날 때 진행)
 
 ---
 
@@ -249,3 +254,18 @@ www.moeung.kr 에 즉시 반영
 ### 이벤트 데이터
 - 2026년 4월 시승 이벤트 7건 직접 Supabase에 삽입:
   현대자동차, 한국토요타, BMW, 메르세데스-벤츠, 아우디, 제네시스, 기아
+
+### 크롤링 시스템 (2026-04-20)
+- `src/lib/crawlers/` — 이디야, 컴포즈커피, 할리스 크롤러 구현
+- `src/lib/crawlers/filter.ts` — 응모/추첨/신청 이벤트만 필터링
+- `src/app/api/crawl/` — run, queue, approve, reject API 라우트
+- Supabase `crawl_queue` 테이블 (status: pending/approved/rejected)
+- `/admin` 페이지에 "크롤링 대기" 탭으로 통합 (별도 URL 없음)
+- `vercel.json` — 매일 자정 자동 크롤링 Cron 설정
+
+### 런칭 전 개선 (2026-04-20)
+- 공지사항/고객센터 → LegalModal 모달로 표시
+- OG 메타태그 추가 (og:title, og:description, og:url, og:type) — 이미지 미적용
+- 이용약관 제6조 추가 (지식재산권 보호, 복제/크롤링 금지)
+- AI 봇 차단 해제: robots.txt + Cloudflare "Do not block (allow crawlers)"
+  - Cloudflare 경로: Security → Settings → Bot traffic → Block AI bots → Do not block
