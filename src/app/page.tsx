@@ -381,7 +381,7 @@ export default function Home() {
       {needsPhone && !showMyPage && <PhoneSetupModal />}
       {legalModal && <LegalModal type={legalModal} onClose={() => setLegalModal(null)} />}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-lg">
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-gray-900 text-white text-sm font-semibold px-6 py-4 rounded-2xl shadow-xl text-center">
           {toast}
         </div>
       )}
